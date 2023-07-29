@@ -4,18 +4,19 @@ import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Head from 'next/head';
-import NextLink from 'next/link';
-import { useAuth } from 'src/hooks/use-auth';
+import { LoadingButton } from '@mui/lab';
+import { default as NextLink } from 'next/link';
+import { authApi } from 'src/services/authApi';
+import { toast } from 'react-hot-toast';
 import { useFormik } from 'formik';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const Page = () => {
-  const router = useRouter();
-  const auth = useAuth();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const formik = useFormik({
     initialValues: {
       email: '',
-      password: '',
       submit: null,
     },
     validationSchema: Yup.object({
@@ -23,24 +24,28 @@ const Page = () => {
         .email('Must be a valid email')
         .max(255)
         .required('Email is required'),
-      password: Yup.string().max(255).required('Password is required'),
     }),
     onSubmit: async (values, helpers) => {
       try {
-        await auth.signIn(values.email, values.password);
-        router.push('/');
+        setIsLoading(true);
+        await authApi.forgotPassword({ email: values.email });
+        toast.success('Email sent', {
+          position: 'top-left',
+        });
+        setIsSuccess(true);
       } catch (err) {
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: err.message });
         helpers.setSubmitting(false);
       }
+      setIsLoading(false);
     },
   });
 
   return (
     <>
       <Head>
-        <title>Login | {process.env.NEXT_PUBLIC_APP_NAME}</title>
+        <title>Forgot | {process.env.NEXT_PUBLIC_APP_NAME}</title>
       </Head>
       <Box
         sx={{
@@ -61,17 +66,10 @@ const Page = () => {
         >
           <div>
             <Stack spacing={1} sx={{ mb: 3 }}>
-              <Typography variant="h4">Login</Typography>
-              <Typography color="text.secondary" variant="body2">
-                Don&apos;t have an account? &nbsp;
-                <Link
-                  component={NextLink}
-                  href="/auth/register"
-                  underline="hover"
-                  variant="subtitle2"
-                >
-                  Register
-                </Link>
+              <Typography variant="h4">Forgot Password</Typography>
+              <Typography variant="body2">
+                Enter your email address and we will send you instructions to
+                reset your password.
               </Typography>
             </Stack>
 
@@ -88,40 +86,53 @@ const Page = () => {
                   type="email"
                   value={formik.values.email}
                 />
-                <TextField
-                  error={!!(formik.touched.password && formik.errors.password)}
-                  fullWidth
-                  helperText={formik.touched.password && formik.errors.password}
-                  label="Password"
-                  name="password"
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  type="password"
-                  value={formik.values.password}
-                />
               </Stack>
               {formik.errors.submit && (
                 <Typography color="error" sx={{ mt: 3 }} variant="body2">
                   {formik.errors.submit}
                 </Typography>
               )}
-              <Link
-                component={NextLink}
-                href="/auth/forgot-password"
-                underline="hover"
-                variant="subtitle2"
+
+              {isSuccess ? (
+                <NextLink href="https://mail.google.com/mail/u/0/#inbox">
+                  <Button
+                    fullWidth
+                    size="large"
+                    sx={{ mt: 3 }}
+                    type="button"
+                    variant="contained"
+                  >
+                    Open Email
+                  </Button>
+                </NextLink>
+              ) : (
+                <LoadingButton
+                  loading={isLoading}
+                  fullWidth
+                  size="large"
+                  sx={{ mt: 3 }}
+                  type="submit"
+                  variant="contained"
+                >
+                  Send Reset Link
+                </LoadingButton>
+              )}
+              <Typography
+                color="text.secondary"
+                variant="body1"
+                textAlign="center"
+                sx={{ mt: 2 }}
               >
-                Forgot password?
-              </Link>
-              <Button
-                fullWidth
-                size="large"
-                sx={{ mt: 3 }}
-                type="submit"
-                variant="contained"
-              >
-                Login
-              </Button>
+                Back to&nbsp;
+                <Link
+                  component={NextLink}
+                  href="/auth/login"
+                  underline="hover"
+                  variant="subtitle2"
+                >
+                  Login
+                </Link>
+              </Typography>
             </form>
           </div>
         </Box>

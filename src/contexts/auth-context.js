@@ -1,16 +1,25 @@
-import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+} from 'react';
+
 import PropTypes from 'prop-types';
+import { authApi } from 'src/services/authApi';
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE',
   SIGN_IN: 'SIGN_IN',
-  SIGN_OUT: 'SIGN_OUT'
+  SIGN_OUT: 'SIGN_OUT',
+  UPDATE_PROFILE: 'UPDATE_PROFILE',
 };
 
 const initialState = {
   isAuthenticated: false,
   isLoading: true,
-  user: null
+  user: null,
 };
 
 const handlers = {
@@ -19,18 +28,16 @@ const handlers = {
 
     return {
       ...state,
-      ...(
-        // if payload (user) is provided, then is authenticated
-        user
-          ? ({
+      ...// if payload (user) is provided, then is authenticated
+      (user
+        ? {
             isAuthenticated: true,
             isLoading: false,
-            user
-          })
-          : ({
-            isLoading: false
-          })
-      )
+            user,
+          }
+        : {
+            isLoading: false,
+          }),
     };
   },
   [HANDLERS.SIGN_IN]: (state, action) => {
@@ -39,21 +46,30 @@ const handlers = {
     return {
       ...state,
       isAuthenticated: true,
-      user
+      user,
     };
   },
   [HANDLERS.SIGN_OUT]: (state) => {
     return {
       ...state,
       isAuthenticated: false,
-      user: null
+      user: null,
     };
-  }
+  },
+  [HANDLERS.UPDATE_PROFILE]: (state, action) => {
+    const user = action.payload;
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...user,
+      },
+    };
+  },
 };
 
-const reducer = (state, action) => (
-  handlers[action.type] ? handlers[action.type](state, action) : state
-);
+const reducer = (state, action) =>
+  handlers[action.type] ? handlers[action.type](state, action) : state;
 
 // The role of this context is to propagate authentication state through the App tree.
 
@@ -75,26 +91,22 @@ export const AuthProvider = (props) => {
     let isAuthenticated = false;
 
     try {
-      isAuthenticated = window.sessionStorage.getItem('authenticated') === 'true';
+      isAuthenticated =
+        window.sessionStorage.getItem('authenticated') === 'true';
     } catch (err) {
       console.error(err);
     }
 
     if (isAuthenticated) {
-      const user = {
-        id: '5e86809283e28b96d2d38537',
-        avatar: '/assets/avatars/avatar-anika-visser.png',
-        name: 'Anika Visser',
-        email: 'anika.visser@devias.io'
-      };
-
+      const response = await authApi.getProfile();
+      const user = response.data;
       dispatch({
         type: HANDLERS.INITIALIZE,
-        payload: user
+        payload: user,
       });
     } else {
       dispatch({
-        type: HANDLERS.INITIALIZE
+        type: HANDLERS.INITIALIZE,
       });
     }
   };
@@ -104,7 +116,7 @@ export const AuthProvider = (props) => {
       initialize();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
 
   const skip = () => {
@@ -118,36 +130,28 @@ export const AuthProvider = (props) => {
       id: '5e86809283e28b96d2d38537',
       avatar: '/assets/avatars/avatar-anika-visser.png',
       name: 'Anika Visser',
-      email: 'anika.visser@devias.io'
+      email: 'anika.visser@devias.io',
     };
 
     dispatch({
       type: HANDLERS.SIGN_IN,
-      payload: user
+      payload: user,
     });
   };
 
   const signIn = async (email, password) => {
-    if (email !== 'demo@devias.io' || password !== 'Password123!') {
-      throw new Error('Please check your email and password');
-    }
-
+    await authApi.login({ email, password });
     try {
       window.sessionStorage.setItem('authenticated', 'true');
     } catch (err) {
       console.error(err);
     }
-
-    const user = {
-      id: '5e86809283e28b96d2d38537',
-      avatar: '/assets/avatars/avatar-anika-visser.png',
-      name: 'Anika Visser',
-      email: 'anika.visser@devias.io'
-    };
+    const response = await authApi.getProfile();
+    const user = response.data;
 
     dispatch({
       type: HANDLERS.SIGN_IN,
-      payload: user
+      payload: user,
     });
   };
 
@@ -156,8 +160,16 @@ export const AuthProvider = (props) => {
   };
 
   const signOut = () => {
+    sessionStorage.removeItem('authenticated');
     dispatch({
-      type: HANDLERS.SIGN_OUT
+      type: HANDLERS.SIGN_OUT,
+    });
+  };
+
+  const updateProfile = async (profile) => {
+    dispatch({
+      type: HANDLERS.UPDATE_PROFILE,
+      payload: profile,
     });
   };
 
@@ -168,7 +180,8 @@ export const AuthProvider = (props) => {
         skip,
         signIn,
         signUp,
-        signOut
+        signOut,
+        updateProfile,
       }}
     >
       {children}
@@ -177,7 +190,7 @@ export const AuthProvider = (props) => {
 };
 
 AuthProvider.propTypes = {
-  children: PropTypes.node
+  children: PropTypes.node,
 };
 
 export const AuthConsumer = AuthContext.Consumer;

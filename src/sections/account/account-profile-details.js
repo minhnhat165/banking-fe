@@ -1,177 +1,147 @@
-import { useCallback, useState } from 'react';
+import * as Yup from 'yup';
+
 import {
   Box,
-  Button,
   Card,
   CardActions,
   CardContent,
   CardHeader,
   Divider,
+  Unstable_Grid2 as Grid,
   TextField,
-  Unstable_Grid2 as Grid
 } from '@mui/material';
 
-const states = [
-  {
-    value: 'alabama',
-    label: 'Alabama'
-  },
-  {
-    value: 'new-york',
-    label: 'New York'
-  },
-  {
-    value: 'san-francisco',
-    label: 'San Francisco'
-  },
-  {
-    value: 'los-angeles',
-    label: 'Los Angeles'
-  }
-];
+import { LoadingButton } from '@mui/lab';
+import { authApi } from 'src/services/authApi';
+import { toast } from 'react-hot-toast';
+import { useAuth } from 'src/hooks/use-auth';
+import { useFormik } from 'formik';
+import { useMutation } from '@tanstack/react-query';
 
 export const AccountProfileDetails = () => {
-  const [values, setValues] = useState({
-    firstName: 'Anika',
-    lastName: 'Visser',
-    email: 'demo@devias.io',
-    phone: '',
-    state: 'los-angeles',
-    country: 'USA'
+  const { user, updateProfile } = useAuth();
+
+  const { mutateAsync, isLoading } = useMutation({
+    mutationFn: authApi.updateProfile,
+    onSuccess: (data) => {
+      updateProfile(data.data);
+      toast.success('Profile updated', {
+        position: 'top-left',
+      });
+    },
   });
 
-  const handleChange = useCallback(
-    (event) => {
-      setValues((prevState) => ({
-        ...prevState,
-        [event.target.name]: event.target.value
-      }));
+  const formik = useFormik({
+    initialValues: {
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      phone: user?.phone,
+      dob: user?.dob,
+      address: user?.address,
     },
-    []
-  );
-
-  const handleSubmit = useCallback(
-    (event) => {
-      event.preventDefault();
+    validationSchema: Yup.object({
+      firstName: Yup.string().max(255).required('First name is required'),
+      lastName: Yup.string().max(255).required('Last name is required'),
+      phone: Yup.string().max(255),
+      dob: Yup.date().max(new Date(), 'Date of birth must be in the past'),
+      address: Yup.string().max(255),
+    }),
+    onSubmit: async (values, helpers) => {
+      try {
+        mutateAsync(values);
+      } catch (err) {
+        helpers.setStatus({ success: false });
+        helpers.setErrors({ submit: err.message });
+        helpers.setSubmitting(false);
+      }
     },
-    []
-  );
+  });
 
   return (
-    <form
-      autoComplete="off"
-      noValidate
-      onSubmit={handleSubmit}
-    >
+    <form autoComplete="off" onSubmit={formik.handleSubmit}>
       <Card>
-        <CardHeader
-          subheader="The information can be edited"
-          title="Profile"
-        />
+        <CardHeader subheader="The information can be edited" title="Profile" />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
-            <Grid
-              container
-              spacing={3}
-            >
-              <Grid
-                xs={12}
-                md={6}
-              >
+            <Grid container spacing={3}>
+              <Grid xs={12} md={6}>
                 <TextField
+                  error={
+                    !!(formik.touched.firstName && formik.errors.firstName)
+                  }
                   fullWidth
-                  helperText="Please specify the first name"
+                  helperText={
+                    formik.touched.firstName && formik.errors.firstName
+                  }
                   label="First name"
                   name="firstName"
-                  onChange={handleChange}
                   required
-                  value={values.firstName}
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.firstName}
                 />
               </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
+              <Grid xs={12} md={6}>
                 <TextField
+                  error={!!(formik.touched.lastName && formik.errors.lastName)}
                   fullWidth
+                  helperText={formik.touched.lastName && formik.errors.lastName}
                   label="Last name"
                   name="lastName"
-                  onChange={handleChange}
                   required
-                  value={values.lastName}
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.lastName}
                 />
               </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
+              <Grid xs={12} md={6}>
                 <TextField
-                  fullWidth
-                  label="Email Address"
-                  name="email"
-                  onChange={handleChange}
-                  required
-                  value={values.email}
-                />
-              </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
-                <TextField
+                  error={!!(formik.touched.phone && formik.errors.phone)}
+                  helperText={formik.touched.phone && formik.errors.phone}
                   fullWidth
                   label="Phone Number"
                   name="phone"
-                  onChange={handleChange}
                   type="number"
-                  value={values.phone}
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.phone}
                 />
               </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
+              <Grid xs={12} md={6}>
                 <TextField
+                  error={!!(formik.touched.dob && formik.errors.dob)}
+                  helperText={formik.touched.dob && formik.errors.dob}
                   fullWidth
-                  label="Country"
-                  name="country"
-                  onChange={handleChange}
+                  label="Select Date of Birth"
+                  name="dob"
+                  type="date"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
                   required
-                  value={values.country}
+                  value={formik.values.dob}
                 />
               </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
+              <Grid xs={12} md={6}>
                 <TextField
+                  error={!!(formik.touched.address && formik.errors.address)}
+                  helperText={formik.touched.address && formik.errors.address}
                   fullWidth
-                  label="Select State"
-                  name="state"
-                  onChange={handleChange}
+                  label="Address"
+                  name="address"
                   required
-                  select
-                  SelectProps={{ native: true }}
-                  value={values.state}
-                >
-                  {states.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.address}
+                ></TextField>
               </Grid>
             </Grid>
           </Box>
         </CardContent>
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained">
+          <LoadingButton loading={isLoading} type="submit" variant="contained">
             Save details
-          </Button>
+          </LoadingButton>
         </CardActions>
       </Card>
     </form>

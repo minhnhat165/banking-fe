@@ -1,11 +1,17 @@
-import ChartBarIcon from '@heroicons/react/24/solid/ChartBarIcon';
-import CogIcon from '@heroicons/react/24/solid/CogIcon';
-import LockClosedIcon from '@heroicons/react/24/solid/LockClosedIcon';
-import ShoppingBagIcon from '@heroicons/react/24/solid/ShoppingBagIcon';
-import UserIcon from '@heroicons/react/24/solid/UserIcon';
-import UserPlusIcon from '@heroicons/react/24/solid/UserPlusIcon';
-import UsersIcon from '@heroicons/react/24/solid/UsersIcon';
-import XCircleIcon from '@heroicons/react/24/solid/XCircleIcon';
+import {
+  ArrowPathRoundedSquareIcon,
+  ChartBarIcon,
+  ClipboardDocumentCheckIcon,
+  ClockIcon,
+  CogIcon,
+  CreditCardIcon,
+  DocumentDuplicateIcon,
+  ReceiptPercentIcon,
+  ShoppingBagIcon,
+  UserIcon,
+  UsersIcon,
+} from '@heroicons/react/24/solid';
+
 import { SvgIcon } from '@mui/material';
 
 export const items = [
@@ -16,8 +22,83 @@ export const items = [
       <SvgIcon fontSize="small">
         <ChartBarIcon />
       </SvgIcon>
-    )
+    ),
   },
+
+  {
+    title: 'Users',
+    path: '/users',
+    icon: (
+      <SvgIcon fontSize="small">
+        <UserIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Products',
+    path: '/products',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ShoppingBagIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Terms',
+    path: '/terms',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ClockIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Interest Rates',
+    path: '/interest-rates',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ReceiptPercentIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Payment Methods',
+    path: '/payment-methods',
+    icon: (
+      <SvgIcon fontSize="small">
+        <DocumentDuplicateIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'RollOver Plans',
+    path: '/rollover-plans',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ArrowPathRoundedSquareIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Bank Accounts',
+    path: '/bank-accounts',
+    icon: (
+      <SvgIcon fontSize="small">
+        <CreditCardIcon />
+      </SvgIcon>
+    ),
+  },
+
+  {
+    title: 'Transactions',
+    path: '/transactions',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ClipboardDocumentCheckIcon />
+      </SvgIcon>
+    ),
+  },
+
   {
     title: 'Customers',
     path: '/customers',
@@ -25,26 +106,9 @@ export const items = [
       <SvgIcon fontSize="small">
         <UsersIcon />
       </SvgIcon>
-    )
+    ),
   },
-  {
-    title: 'Companies',
-    path: '/companies',
-    icon: (
-      <SvgIcon fontSize="small">
-        <ShoppingBagIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: 'Account',
-    path: '/account',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UserIcon />
-      </SvgIcon>
-    )
-  },
+
   {
     title: 'Settings',
     path: '/settings',
@@ -52,33 +116,6 @@ export const items = [
       <SvgIcon fontSize="small">
         <CogIcon />
       </SvgIcon>
-    )
+    ),
   },
-  {
-    title: 'Login',
-    path: '/auth/login',
-    icon: (
-      <SvgIcon fontSize="small">
-        <LockClosedIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: 'Register',
-    path: '/auth/register',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UserPlusIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: 'Error',
-    path: '/404',
-    icon: (
-      <SvgIcon fontSize="small">
-        <XCircleIcon />
-      </SvgIcon>
-    )
-  }
 ];

@@ -1,21 +1,41 @@
-import PropTypes from 'prop-types';
-import { format } from 'date-fns';
 import {
   Avatar,
   Box,
   Card,
-  Checkbox,
+  IconButton,
   Stack,
+  SvgIcon,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TablePagination,
   TableRow,
-  Typography
+  Typography,
 } from '@mui/material';
+import { LockOpenIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
+
+import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
+import { SeverityPill } from 'src/components/severity-pill';
 import { getInitials } from 'src/utils/get-initials';
+
+const statusMap = {
+  0: 'warning',
+  1: 'success',
+  2: 'error',
+};
+
+const userStatusMap = {
+  0: 'Pending',
+  1: 'Active',
+  2: 'Blocked',
+};
+
+const roleMap = {
+  0: 'Admin',
+  1: 'User',
+};
 
 export const CustomersTable = (props) => {
   const {
@@ -29,11 +49,8 @@ export const CustomersTable = (props) => {
     onSelectOne,
     page = 0,
     rowsPerPage = 0,
-    selected = []
+    selected = [],
   } = props;
-
-  const selectedSome = (selected.length > 0) && (selected.length < items.length);
-  const selectedAll = (items.length > 0) && (selected.length === items.length);
 
   return (
     <Card>
@@ -42,84 +59,60 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={selectedAll}
-                    indeterminate={selectedSome}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        onSelectAll?.();
-                      } else {
-                        onDeselectAll?.();
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  Name
-                </TableCell>
-                <TableCell>
-                  Email
-                </TableCell>
-                <TableCell>
-                  Location
-                </TableCell>
-                <TableCell>
-                  Phone
-                </TableCell>
-                <TableCell>
-                  Signed Up
-                </TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell align="center">Status</TableCell>
+                <TableCell align="center">Role</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {items.map((customer) => {
                 const isSelected = selected.includes(customer.id);
-                const createdAt = format(customer.createdAt, 'dd/MM/yyyy');
-
                 return (
-                  <TableRow
-                    hover
-                    key={customer.id}
-                    selected={isSelected}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(event) => {
-                          if (event.target.checked) {
-                            onSelectOne?.(customer.id);
-                          } else {
-                            onDeselectOne?.(customer.id);
-                          }
-                        }}
-                      />
-                    </TableCell>
+                  <TableRow hover key={customer.id} selected={isSelected}>
                     <TableCell>
-                      <Stack
-                        alignItems="center"
-                        direction="row"
-                        spacing={2}
-                      >
+                      <Stack alignItems="center" direction="row" spacing={2}>
                         <Avatar src={customer.avatar}>
                           {getInitials(customer.name)}
                         </Avatar>
                         <Typography variant="subtitle2">
-                          {customer.name}
+                          {customer.lastName + ' ' + customer.firstName}
                         </Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>
-                      {customer.email}
+                    <TableCell>{customer.email}</TableCell>
+                    <TableCell>{customer.address}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell align="center">
+                      <SeverityPill color={statusMap[customer.status]}>
+                        {userStatusMap[customer.status]}
+                      </SeverityPill>
+                    </TableCell>
+                    <TableCell align="center">
+                      <SeverityPill color={statusMap[customer.roleId]}>
+                        {roleMap[customer.roleId]}
+                      </SeverityPill>
                     </TableCell>
                     <TableCell>
-                      {customer.address.city}, {customer.address.state}, {customer.address.country}
-                    </TableCell>
-                    <TableCell>
-                      {customer.phone}
-                    </TableCell>
-                    <TableCell>
-                      {createdAt}
+                      <Stack
+                        direction="row"
+                        justifyContent="center"
+                        spacing={1}
+                      >
+                        <IconButton size="small">
+                          <SvgIcon fontSize="small">
+                            <PencilSquareIcon />
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton size="small">
+                          <SvgIcon fontSize="small">
+                            <LockOpenIcon />
+                          </SvgIcon>
+                        </IconButton>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 );
@@ -135,7 +128,7 @@ export const CustomersTable = (props) => {
         onRowsPerPageChange={onRowsPerPageChange}
         page={page}
         rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[1, 5, 10, 25]}
       />
     </Card>
   );
@@ -152,5 +145,5 @@ CustomersTable.propTypes = {
   onSelectOne: PropTypes.func,
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
-  selected: PropTypes.array
+  selected: PropTypes.array,
 };
