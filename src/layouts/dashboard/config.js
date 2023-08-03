@@ -71,7 +71,7 @@ export const items = [
     ),
   },
   {
-    title: 'RollOver Plans',
+    title: 'Rollover Plans',
     path: '/rollover-plans',
     icon: (
       <SvgIcon fontSize="small">
@@ -80,31 +80,29 @@ export const items = [
     ),
   },
   {
-    title: 'Bank Accounts',
-    path: '/bank-accounts',
+    title: 'Customers',
+    path: '/customers',
+    icon: (
+      <SvgIcon fontSize="small">
+        <UsersIcon />
+      </SvgIcon>
+    ),
+  },
+  {
+    title: 'Accounts',
+    path: '/accounts',
     icon: (
       <SvgIcon fontSize="small">
         <CreditCardIcon />
       </SvgIcon>
     ),
   },
-
   {
     title: 'Transactions',
     path: '/transactions',
     icon: (
       <SvgIcon fontSize="small">
         <ClipboardDocumentCheckIcon />
-      </SvgIcon>
-    ),
-  },
-
-  {
-    title: 'Customers',
-    path: '/customers',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UsersIcon />
       </SvgIcon>
     ),
   },

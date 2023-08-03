@@ -12,34 +12,61 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import {
+  InformationCircleIcon,
+  LockOpenIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
 
-const genderMap = {
+const statusMap = {
   0: {
-    color: 'warning',
-    text: 'Female',
+    color: 'error',
+    text: 'Failed',
   },
   1: {
     color: 'success',
-    text: 'Male',
+    text: 'Success',
   },
 };
 
-export const CustomersTable = (props) => {
+const typeMap = {
+  1: {
+    color: 'info',
+    text: 'Deposit',
+  },
+  2: {
+    color: 'primary',
+    text: 'Withdrawal',
+  },
+  3: {
+    color: 'success',
+    text: 'Transfer',
+  },
+  4: {
+    color: 'warning',
+    text: 'INTEREST',
+  },
+  5: {
+    color: 'error',
+    text: 'SETTLEMENT',
+  },
+};
+
+export const TransactionsTable = (props) => {
   const {
     count = 0,
     items = [],
     onPageChange = () => {},
     onRowsPerPageChange,
+    onSelectAll,
+    onSelectOne,
     page = 0,
     rowsPerPage = 0,
     selected = [],
-    onDelete = () => {},
-    onEdit = () => {},
   } = props;
 
   return (
@@ -49,12 +76,13 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Identification</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell align="center">Gender</TableCell>
+                <TableCell>Account Number</TableCell>
+                <TableCell align="center">Type</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Transaction Date</TableCell>
+                <TableCell>Balance</TableCell>
+                <TableCell align="center">Status</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -64,19 +92,32 @@ export const CustomersTable = (props) => {
                 return (
                   <TableRow hover key={item.id} selected={isSelected}>
                     <TableCell>
-                      <Stack alignItems="center" direction="row" spacing={2}>
-                        <Typography variant="subtitle2">
-                          {item.lastName + ' ' + item.firstName}
-                        </Typography>
-                      </Stack>
+                      <Typography variant="subtitle2">
+                        {item.account.number}
+                      </Typography>
                     </TableCell>
-                    <TableCell>{item.pin}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.address}</TableCell>
-                    <TableCell>{item.phone}</TableCell>
                     <TableCell align="center">
-                      <SeverityPill color={genderMap[item.gender].color}>
-                        {genderMap[item.gender].text}
+                      <SeverityPill color={typeMap[item.type].color}>
+                        {typeMap[item.type].text}
+                      </SeverityPill>
+                    </TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      }).format(item.amount)}
+                    </TableCell>
+                    <TableCell>{item.description}</TableCell>
+                    <TableCell>{item.transactionDate}</TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      }).format(item.balance)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <SeverityPill color={statusMap[item.status].color}>
+                        {statusMap[item.status].text}
                       </SeverityPill>
                     </TableCell>
                     <TableCell>
@@ -85,17 +126,9 @@ export const CustomersTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
+                        <IconButton size="small">
                           <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onDelete(item.id)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <TrashIcon />
+                            <InformationCircleIcon />
                           </SvgIcon>
                         </IconButton>
                       </Stack>
@@ -120,7 +153,7 @@ export const CustomersTable = (props) => {
   );
 };
 
-CustomersTable.propTypes = {
+TransactionsTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
   onDeselectAll: PropTypes.func,
@@ -132,6 +165,4 @@ CustomersTable.propTypes = {
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
   selected: PropTypes.array,
-  onDelete: PropTypes.func,
-  onEdit: PropTypes.func,
 };

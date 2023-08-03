@@ -14,22 +14,22 @@ import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
-import { UsersTable } from 'src/sections/user/users-table';
+import { TransactionsTable } from 'src/sections/transaction/transactions-table';
+import { transactionApi } from 'src/services/transaction-api';
 import { useQuery } from '@tanstack/react-query';
-import { userApi } from 'src/services/user-api';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const { data } = useQuery({
-    queryKey: ['users', { page, rowsPerPage }],
+    queryKey: ['transactions', { page, rowsPerPage }],
     queryFn: () => {
-      return userApi.getAll({ page, limit: rowsPerPage });
+      return transactionApi.getAll({ page, limit: rowsPerPage });
     },
   });
 
-  const users = data?.data?.items || [];
+  const items = data?.data?.items || [];
 
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
@@ -42,7 +42,7 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>Users | {process.env.NEXT_PUBLIC_APP_NAME}</title>
+        <title>Transactions | {process.env.NEXT_PUBLIC_APP_NAME}</title>
       </Head>
       <Box
         component="main"
@@ -54,7 +54,7 @@ const Page = () => {
           <Stack spacing={3}>
             <Stack direction="row" justifyContent="space-between" spacing={4}>
               <Stack spacing={1}>
-                <Typography variant="h4">Users</Typography>
+                <Typography variant="h4">Transactions</Typography>
                 <Stack alignItems="center" direction="row" spacing={1}>
                   <Button
                     color="inherit"
@@ -92,9 +92,9 @@ const Page = () => {
               </div>
             </Stack>
             <CustomersSearch />
-            <UsersTable
+            <TransactionsTable
               count={data?.data?.total || 0}
-              items={users}
+              items={items}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}

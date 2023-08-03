@@ -10,26 +10,33 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
 } from '@mui/material';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import {
+  InformationCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
 
-const genderMap = {
+const statusMap = {
   0: {
     color: 'warning',
-    text: 'Female',
+    text: 'Inactive',
   },
   1: {
     color: 'success',
-    text: 'Male',
+    text: 'Active',
+  },
+  2: {
+    color: 'secondary',
+    text: 'Expired',
   },
 };
 
-export const CustomersTable = (props) => {
+export const InterestRatesTable = (props) => {
   const {
     count = 0,
     items = [],
@@ -49,35 +56,32 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Identification</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell align="center">Gender</TableCell>
+                <TableCell align="center">Index</TableCell>
+                <TableCell align="center">Rate</TableCell>
+                <TableCell align="center">Status</TableCell>
+                <TableCell>Product</TableCell>
+                <TableCell>Term</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const isSelected = selected.includes(item.id);
                 return (
                   <TableRow hover key={item.id} selected={isSelected}>
-                    <TableCell>
-                      <Stack alignItems="center" direction="row" spacing={2}>
-                        <Typography variant="subtitle2">
-                          {item.lastName + ' ' + item.firstName}
-                        </Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>{item.pin}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.address}</TableCell>
-                    <TableCell>{item.phone}</TableCell>
                     <TableCell align="center">
-                      <SeverityPill color={genderMap[item.gender].color}>
-                        {genderMap[item.gender].text}
+                      {index + 1 + page * rowsPerPage}
+                    </TableCell>
+                    <TableCell align="center">{item.value}%</TableCell>
+
+                    <TableCell align="center">
+                      <SeverityPill color={statusMap[item.status].color}>
+                        {statusMap[item.status].text}
                       </SeverityPill>
+                    </TableCell>
+                    <TableCell>{item.product.name}</TableCell>
+                    <TableCell>
+                      {item?.term?.name ? item.term.name : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <Stack
@@ -96,6 +100,11 @@ export const CustomersTable = (props) => {
                         >
                           <SvgIcon fontSize="small">
                             <TrashIcon />
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton size="small">
+                          <SvgIcon fontSize="small">
+                            <InformationCircleIcon />
                           </SvgIcon>
                         </IconButton>
                       </Stack>
@@ -120,7 +129,7 @@ export const CustomersTable = (props) => {
   );
 };
 
-CustomersTable.propTypes = {
+InterestRatesTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
   onDeselectAll: PropTypes.func,

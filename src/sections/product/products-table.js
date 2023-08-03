@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Card,
   IconButton,
@@ -16,20 +17,9 @@ import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from 'src/components/severity-pill';
+import { getInitials } from 'src/utils/get-initials';
 
-const genderMap = {
-  0: {
-    color: 'warning',
-    text: 'Female',
-  },
-  1: {
-    color: 'success',
-    text: 'Male',
-  },
-};
-
-export const CustomersTable = (props) => {
+export const ProductsTable = (props) => {
   const {
     count = 0,
     items = [],
@@ -50,34 +40,29 @@ export const CustomersTable = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Identification</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell align="center">Gender</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Create Date</TableCell>
+                <TableCell>Create By</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((item) => {
-                const isSelected = selected.includes(item.id);
+              {items.map((product) => {
+                const isSelected = selected.includes(product.id);
                 return (
-                  <TableRow hover key={item.id} selected={isSelected}>
+                  <TableRow hover key={product.id} selected={isSelected}>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{product.description}</TableCell>
+                    <TableCell>{product.createdDate}</TableCell>
                     <TableCell>
                       <Stack alignItems="center" direction="row" spacing={2}>
+                        <Avatar src={product.user.avatar}>
+                          {getInitials(product.user.firstName)}
+                        </Avatar>
                         <Typography variant="subtitle2">
-                          {item.lastName + ' ' + item.firstName}
+                          {product.user.lastName + ' ' + product.user.firstName}
                         </Typography>
                       </Stack>
-                    </TableCell>
-                    <TableCell>{item.pin}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.address}</TableCell>
-                    <TableCell>{item.phone}</TableCell>
-                    <TableCell align="center">
-                      <SeverityPill color={genderMap[item.gender].color}>
-                        {genderMap[item.gender].text}
-                      </SeverityPill>
                     </TableCell>
                     <TableCell>
                       <Stack
@@ -85,13 +70,16 @@ export const CustomersTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
+                        <IconButton
+                          onClick={() => onEdit(product)}
+                          size="small"
+                        >
                           <SvgIcon fontSize="small">
                             <PencilSquareIcon />
                           </SvgIcon>
                         </IconButton>
                         <IconButton
-                          onClick={() => onDelete(item.id)}
+                          onClick={() => onDelete(product.id)}
                           size="small"
                         >
                           <SvgIcon fontSize="small">
@@ -120,7 +108,7 @@ export const CustomersTable = (props) => {
   );
 };
 
-CustomersTable.propTypes = {
+ProductsTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
   onDeselectAll: PropTypes.func,
@@ -133,5 +121,4 @@ CustomersTable.propTypes = {
   rowsPerPage: PropTypes.number,
   selected: PropTypes.array,
   onDelete: PropTypes.func,
-  onEdit: PropTypes.func,
 };

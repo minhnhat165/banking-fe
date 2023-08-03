@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Card,
   IconButton,
@@ -16,20 +17,9 @@ import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from 'src/components/severity-pill';
+import { getInitials } from 'src/utils/get-initials';
 
-const genderMap = {
-  0: {
-    color: 'warning',
-    text: 'Female',
-  },
-  1: {
-    color: 'success',
-    text: 'Male',
-  },
-};
-
-export const CustomersTable = (props) => {
+export const TermsTable = (props) => {
   const {
     count = 0,
     items = [],
@@ -50,11 +40,10 @@ export const CustomersTable = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Identification</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell align="center">Gender</TableCell>
+                <TableCell align="center">Duration (month)</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Create Date</TableCell>
+                <TableCell>Create By</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -63,21 +52,19 @@ export const CustomersTable = (props) => {
                 const isSelected = selected.includes(item.id);
                 return (
                   <TableRow hover key={item.id} selected={isSelected}>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell align="center">{item.value}</TableCell>
+                    <TableCell>{item.description}</TableCell>
+                    <TableCell>{item.createdDate}</TableCell>
                     <TableCell>
                       <Stack alignItems="center" direction="row" spacing={2}>
+                        <Avatar src={item.user.avatar}>
+                          {getInitials(item.user.firstName)}
+                        </Avatar>
                         <Typography variant="subtitle2">
-                          {item.lastName + ' ' + item.firstName}
+                          {item.user.lastName + ' ' + item.user.firstName}
                         </Typography>
                       </Stack>
-                    </TableCell>
-                    <TableCell>{item.pin}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.address}</TableCell>
-                    <TableCell>{item.phone}</TableCell>
-                    <TableCell align="center">
-                      <SeverityPill color={genderMap[item.gender].color}>
-                        {genderMap[item.gender].text}
-                      </SeverityPill>
                     </TableCell>
                     <TableCell>
                       <Stack
@@ -120,7 +107,7 @@ export const CustomersTable = (props) => {
   );
 };
 
-CustomersTable.propTypes = {
+TermsTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
   onDeselectAll: PropTypes.func,

@@ -2,11 +2,13 @@ import {
   Box,
   Button,
   Container,
+  Modal,
   Stack,
   SvgIcon,
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
@@ -14,22 +16,25 @@ import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
-import { UsersTable } from 'src/sections/user/users-table';
-import { useQuery } from '@tanstack/react-query';
-import { userApi } from 'src/services/user-api';
+import { RolloverPlanForm } from 'src/sections/rollover-plan/rollover-plan-form';
+import { RolloverPlansTable } from 'src/sections/rollover-plan/rollover-plans-table';
+import { paymentMethodApi } from 'src/services/payment-method-api';
+import { rolloverPlanApi } from 'src/services/rollover-plan-api';
+import { toast } from 'react-hot-toast';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const key = ['rollovers', { page, rowsPerPage }];
 
   const { data } = useQuery({
-    queryKey: ['users', { page, rowsPerPage }],
+    queryKey: key,
     queryFn: () => {
-      return userApi.getAll({ page, limit: rowsPerPage });
+      return rolloverPlanApi.getAll({ page, limit: rowsPerPage });
     },
   });
 
-  const users = data?.data?.items || [];
+  const items = data?.data?.items || [];
 
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
@@ -38,11 +43,31 @@ const Page = () => {
   const handleRowsPerPageChange = useCallback((event) => {
     setRowsPerPage(event.target.value);
   }, []);
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const queryClient = useQueryClient();
+  const [selectedItem, setSelectedItem] = useState(null);
+  const { mutateAsync: update } = useMutation({
+    mutationFn: rolloverPlanApi.update,
+    onSuccess: (data) => {
+      setOpen(false);
+      queryClient.invalidateQueries(key);
+      toast.success('Update product successfully', {
+        position: 'center-top',
+      });
+    },
+  });
 
   return (
     <>
       <Head>
-        <title>Users | {process.env.NEXT_PUBLIC_APP_NAME}</title>
+        <title>Rollover Plan | {process.env.NEXT_PUBLIC_APP_NAME}</title>
       </Head>
       <Box
         component="main"
@@ -54,55 +79,29 @@ const Page = () => {
           <Stack spacing={3}>
             <Stack direction="row" justifyContent="space-between" spacing={4}>
               <Stack spacing={1}>
-                <Typography variant="h4">Users</Typography>
-                <Stack alignItems="center" direction="row" spacing={1}>
-                  <Button
-                    color="inherit"
-                    startIcon={
-                      <SvgIcon fontSize="small">
-                        <ArrowUpOnSquareIcon />
-                      </SvgIcon>
-                    }
-                  >
-                    Import
-                  </Button>
-                  <Button
-                    color="inherit"
-                    startIcon={
-                      <SvgIcon fontSize="small">
-                        <ArrowDownOnSquareIcon />
-                      </SvgIcon>
-                    }
-                  >
-                    Export
-                  </Button>
-                </Stack>
+                <Typography variant="h4">Rollover Plan</Typography>
               </Stack>
-              <div>
-                <Button
-                  startIcon={
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
             </Stack>
-            <CustomersSearch />
-            <UsersTable
+            <RolloverPlansTable
               count={data?.data?.total || 0}
-              items={users}
+              items={items}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
               rowsPerPage={rowsPerPage}
+              onEdit={(item) => {
+                setSelectedItem(item);
+                handleOpen();
+              }}
             />
           </Stack>
         </Container>
       </Box>
+      <Modal open={open} onClose={handleClose}>
+        <Box>
+          <RolloverPlanForm onSubmit={update} item={selectedItem} type="EDIT" />
+        </Box>
+      </Modal>
     </>
   );
 };

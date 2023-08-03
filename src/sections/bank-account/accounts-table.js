@@ -12,24 +12,52 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import {
+  CreditCardIcon,
+  InformationCircleIcon,
+  LockOpenIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
+import { toast } from 'react-hot-toast';
 
-const genderMap = {
+const statusMap = {
   0: {
     color: 'warning',
-    text: 'Female',
+    text: 'Inactive',
   },
   1: {
     color: 'success',
-    text: 'Male',
+    text: 'Active',
+  },
+
+  2: {
+    color: 'primary',
+    text: 'Maturity',
+  },
+
+  3: {
+    color: 'error',
+    text: 'Closed',
   },
 };
 
-export const CustomersTable = (props) => {
+const typeMap = {
+  0: {
+    color: 'info',
+    text: 'Checking',
+  },
+  1: {
+    color: 'primary',
+    text: 'Deposit',
+  },
+};
+
+export const AccountsTable = (props) => {
   const {
     count = 0,
     items = [],
@@ -40,6 +68,7 @@ export const CustomersTable = (props) => {
     selected = [],
     onDelete = () => {},
     onEdit = () => {},
+    onShowDetails = () => {},
   } = props;
 
   return (
@@ -49,12 +78,12 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Identification</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell align="center">Gender</TableCell>
+                <TableCell>Number</TableCell>
+                <TableCell align="center">Type</TableCell>
+                <TableCell>Payment Method</TableCell>
+                <TableCell align="center">Status</TableCell>
+                <TableCell>Rollover</TableCell>
+                <TableCell>Customer</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -64,28 +93,46 @@ export const CustomersTable = (props) => {
                 return (
                   <TableRow hover key={item.id} selected={isSelected}>
                     <TableCell>
-                      <Stack alignItems="center" direction="row" spacing={2}>
-                        <Typography variant="subtitle2">
-                          {item.lastName + ' ' + item.firstName}
-                        </Typography>
-                      </Stack>
+                      <Typography variant="subtitle2">{item.number}</Typography>
                     </TableCell>
-                    <TableCell>{item.pin}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.address}</TableCell>
-                    <TableCell>{item.phone}</TableCell>
                     <TableCell align="center">
-                      <SeverityPill color={genderMap[item.gender].color}>
-                        {genderMap[item.gender].text}
+                      <SeverityPill color={typeMap[item.type].color}>
+                        {typeMap[item.type].text}
                       </SeverityPill>
                     </TableCell>
+                    <TableCell>
+                      {item?.paymentMethod ? item.paymentMethod.name : 'N/A'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <SeverityPill color={statusMap[item.status].color}>
+                        {statusMap[item.status].text}
+                      </SeverityPill>
+                    </TableCell>
+                    <TableCell>
+                      {item?.rollover ? item.rollover.name : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="subtitle2">
+                        {item.customer.lastName + ' ' + item.customer.firstName}
+                      </Typography>
+                    </TableCell>
+
                     <TableCell>
                       <Stack
                         direction="row"
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
+                        <IconButton
+                          onClick={() => {
+                            if (item.status !== 0) {
+                              toast.error('Account is not inactive');
+                              return;
+                            }
+                            onEdit(item);
+                          }}
+                          size="small"
+                        >
                           <SvgIcon fontSize="small">
                             <PencilSquareIcon />
                           </SvgIcon>
@@ -96,6 +143,19 @@ export const CustomersTable = (props) => {
                         >
                           <SvgIcon fontSize="small">
                             <TrashIcon />
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton
+                          onClick={() => onShowDetails(item)}
+                          size="small"
+                        >
+                          <SvgIcon fontSize="small">
+                            <InformationCircleIcon />
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton size="small">
+                          <SvgIcon fontSize="small">
+                            <CreditCardIcon />
                           </SvgIcon>
                         </IconButton>
                       </Stack>
@@ -120,7 +180,7 @@ export const CustomersTable = (props) => {
   );
 };
 
-CustomersTable.propTypes = {
+AccountsTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
   onDeselectAll: PropTypes.func,
@@ -134,4 +194,5 @@ CustomersTable.propTypes = {
   selected: PropTypes.array,
   onDelete: PropTypes.func,
   onEdit: PropTypes.func,
+  onShowDetails: PropTypes.func,
 };
