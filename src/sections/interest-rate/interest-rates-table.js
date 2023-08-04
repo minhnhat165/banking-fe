@@ -47,6 +47,8 @@ export const InterestRatesTable = (props) => {
     selected = [],
     onDelete = () => {},
     onEdit = () => {},
+    allowEdit = false,
+    allowDelete = false,
   } = props;
 
   return (
@@ -89,19 +91,23 @@ export const InterestRatesTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
-                          <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onDelete(item.id)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <TrashIcon />
-                          </SvgIcon>
-                        </IconButton>
+                        {allowEdit && (
+                          <IconButton onClick={() => onEdit(item)} size="small">
+                            <SvgIcon fontSize="small">
+                              <PencilSquareIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowDelete && (
+                          <IconButton
+                            onClick={() => onDelete(item.id)}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <TrashIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                         <IconButton size="small">
                           <SvgIcon fontSize="small">
                             <InformationCircleIcon />

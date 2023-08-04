@@ -83,6 +83,7 @@ export const AccountDetails = ({
   onClose,
   queryKey,
   onSettle,
+  allowEdit = true,
   style: _style,
 }) => {
   const startDate = moment(item?.activatedDate || item?.createdDate);
@@ -266,6 +267,7 @@ export const AccountDetails = ({
         </CardContent>
         {(item.status === ACCOUNT.STATUS.ACTIVATED ||
           item.status === ACCOUNT.STATUS.MATURITY) &&
+          allowEdit &&
           parseInt(item.type) === ACCOUNT.TYPE.DEPOSIT && (
             <CardActionArea
               sx={{

@@ -38,11 +38,6 @@ const userStatusMap = {
   2: 'locked',
 };
 
-const roleMap = {
-  0: 'Admin',
-  1: 'User',
-};
-
 export const UsersTable = (props) => {
   const {
     count = 0,
@@ -57,6 +52,8 @@ export const UsersTable = (props) => {
     onLock = () => {},
     onUnlock = () => {},
     onPermission = () => {},
+    allowEdit = false,
+    allowDelete = false,
   } = props;
 
   return (
@@ -103,43 +100,51 @@ export const UsersTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
-                          <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onDelete(item.id)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <TrashIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() =>
-                            item.status === 2
-                              ? onUnlock(item.id)
-                              : onLock(item.id)
-                          }
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            {item.status === 2 ? (
-                              <LockClosedIcon />
-                            ) : (
-                              <LockOpenIcon />
-                            )}
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onPermission(item)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <ShieldCheckIcon />
-                          </SvgIcon>
-                        </IconButton>
+                        {allowEdit && (
+                          <IconButton onClick={() => onEdit(item)} size="small">
+                            <SvgIcon fontSize="small">
+                              <PencilSquareIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowDelete && (
+                          <IconButton
+                            onClick={() => onDelete(item.id)}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <TrashIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowEdit && (
+                          <IconButton
+                            onClick={() =>
+                              item.status === 2
+                                ? onUnlock(item.id)
+                                : onLock(item.id)
+                            }
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              {item.status === 2 ? (
+                                <LockClosedIcon />
+                              ) : (
+                                <LockOpenIcon />
+                              )}
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowEdit && (
+                          <IconButton
+                            onClick={() => onPermission(item)}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <ShieldCheckIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

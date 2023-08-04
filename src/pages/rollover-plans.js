@@ -1,25 +1,12 @@
-import {
-  Box,
-  Button,
-  Container,
-  Modal,
-  Stack,
-  SvgIcon,
-  Typography,
-} from '@mui/material';
+import { Box, Container, Modal, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
-import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
-import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { RolloverPlanForm } from 'src/sections/rollover-plan/rollover-plan-form';
 import { RolloverPlansTable } from 'src/sections/rollover-plan/rollover-plans-table';
 import { SCREENS } from 'src/layouts/dashboard/config';
-import { paymentMethodApi } from 'src/services/payment-method-api';
 import { rolloverPlanApi } from 'src/services/rollover-plan-api';
 import { toast } from 'react-hot-toast';
 import { usePermission } from 'src/hooks/use-permission';
@@ -66,7 +53,9 @@ const Page = () => {
     },
   });
 
-  const isHas = usePermission(SCREENS.ROLLOVER_PLANS);
+  const { isHas, isAll, isCreate, isDelete, isUpdate } = usePermission(
+    SCREENS.ROLLOVER_PLANS,
+  );
   if (!isHas) {
     return null;
   }
@@ -90,6 +79,7 @@ const Page = () => {
               </Stack>
             </Stack>
             <RolloverPlansTable
+              allowEdit={isAll || isUpdate}
               count={data?.data?.total || 0}
               items={items}
               onPageChange={handlePageChange}

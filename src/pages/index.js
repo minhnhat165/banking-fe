@@ -17,7 +17,7 @@ import { usePermission } from 'src/hooks/use-permission';
 const now = new Date();
 
 const Page = () => {
-  const isHas = usePermission(SCREENS.OVERVIEW);
+  const { isHas } = usePermission(SCREENS.OVERVIEW);
   if (!isHas) {
     return null;
   }

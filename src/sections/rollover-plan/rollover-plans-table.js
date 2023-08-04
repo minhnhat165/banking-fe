@@ -26,6 +26,7 @@ export const RolloverPlansTable = (props) => {
     rowsPerPage = 0,
     selected = [],
     onEdit = () => {},
+    allowEdit = false,
   } = props;
 
   return (
@@ -57,11 +58,13 @@ export const RolloverPlansTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
-                          <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
+                        {allowEdit && (
+                          <IconButton onClick={() => onEdit(item)} size="small">
+                            <SvgIcon fontSize="small">
+                              <PencilSquareIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

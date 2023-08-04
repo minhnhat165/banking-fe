@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { SideNav } from './side-nav';
+import SocketClient from 'src/lib/socket-io';
 import { TopNav } from './top-nav';
 import { styled } from '@mui/material/styles';
 import { usePathname } from 'next/navigation';
@@ -47,6 +48,7 @@ export const Layout = withAuthGuard((props) => {
     <>
       <TopNav onNavOpen={() => setOpenNav(true)} />
       <SideNav onClose={() => setOpenNav(false)} open={openNav} />
+      <SocketClient />
       <LayoutRoot>
         <LayoutContainer>{children}</LayoutContainer>
       </LayoutRoot>

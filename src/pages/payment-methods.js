@@ -53,7 +53,9 @@ const Page = () => {
     },
   });
 
-  const isHas = usePermission(SCREENS.PAYMENT_METHODS);
+  const { isHas, isAll, isCreate, isDelete, isUpdate } = usePermission(
+    SCREENS.PAYMENT_METHODS,
+  );
   if (!isHas) {
     return null;
   }
@@ -77,6 +79,7 @@ const Page = () => {
               </Stack>
             </Stack>
             <PaymentMethodsTable
+              allowEdit={isAll || isUpdate}
               count={data?.data?.total || 0}
               items={items}
               onPageChange={handlePageChange}

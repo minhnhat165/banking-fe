@@ -22,6 +22,7 @@ import { ProductsTable } from 'src/sections/product/products-table';
 import { SCREENS } from 'src/layouts/dashboard/config';
 import { productApi } from 'src/services/product-api';
 import { toast } from 'react-hot-toast';
+import { usePermission } from 'src/hooks/use-permission';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -107,10 +108,13 @@ const Page = () => {
     },
   });
 
-  const isHas = usePermission(SCREENS.PRODUCTS);
+  const { isHas, isAll, isCreate, isDelete, isRead, isUpdate } = usePermission(
+    SCREENS.PRODUCTS,
+  );
   if (!isHas) {
     return null;
   }
+  console.log('isAll', isAll, isCreate, isDelete, isRead, isUpdate);
 
   return (
     <>
@@ -164,22 +168,26 @@ const Page = () => {
                   </Button>
                 </Stack>
               </Stack>
-              <div>
-                <Button
-                  onClick={handleOpen}
-                  startIcon={
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
+              {(isAll || isCreate) && (
+                <div>
+                  <Button
+                    onClick={handleOpen}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                </div>
+              )}
             </Stack>
             <CustomersSearch />
             <ProductsTable
+              allowEdit={isAll || isUpdate}
+              allowDelete={isAll || isDelete}
               onDelete={deleteItem}
               count={data?.data?.total || 0}
               items={products}

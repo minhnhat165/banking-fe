@@ -24,7 +24,7 @@ export const SideNav = (props) => {
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
 
-  const userPermissions = useAuth().user.permissions || [];
+  const userPermissions = useAuth()?.user?.permissions || [];
 
   const content = (
     <Scrollbar

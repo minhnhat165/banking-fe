@@ -69,6 +69,8 @@ export const AccountsTable = (props) => {
     onDelete = () => {},
     onEdit = () => {},
     onShowDetails = () => {},
+    allowEdit = false,
+    allowDelete = false,
   } = props;
 
   return (
@@ -123,39 +125,38 @@ export const AccountsTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton
-                          onClick={() => {
-                            if (item.status !== 0) {
-                              toast.error('Account is not inactive');
-                              return;
-                            }
-                            onEdit(item);
-                          }}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onDelete(item.id)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <TrashIcon />
-                          </SvgIcon>
-                        </IconButton>
+                        {allowEdit && (
+                          <IconButton
+                            onClick={() => {
+                              if (item.status !== 0) {
+                                toast.error('Account is not inactive');
+                                return;
+                              }
+                              onEdit(item);
+                            }}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <PencilSquareIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowDelete && (
+                          <IconButton
+                            onClick={() => onDelete(item.id)}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <TrashIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                         <IconButton
                           onClick={() => onShowDetails(item)}
                           size="small"
                         >
                           <SvgIcon fontSize="small">
                             <InformationCircleIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton size="small">
-                          <SvgIcon fontSize="small">
-                            <CreditCardIcon />
                           </SvgIcon>
                         </IconButton>
                       </Stack>

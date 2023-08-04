@@ -49,7 +49,6 @@ export const PermissionCard = ({
   const { mutate: add } = useMutation({
     mutationFn: userPermissionApi.add,
     onSuccess: (data) => {
-      const updatedCheckedItems = {};
       toast.success('Add permission successfully', {
         position: 'top-center',
       });
@@ -140,14 +139,14 @@ export const PermissionCard = ({
               checked={checkedItems[2]}
               onChange={handleChange}
               disabled={isSelectAll}
-              label="Read"
+              label="Create"
             />
             <PermissionCheckbox
               value={3}
               checked={checkedItems[3]}
               onChange={handleChange}
               disabled={isSelectAll}
-              label="Create"
+              label="Read"
             />
             <PermissionCheckbox
               value={4}

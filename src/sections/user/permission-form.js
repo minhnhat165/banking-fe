@@ -1,17 +1,26 @@
 import {
+  ArrowPathRoundedSquareIcon,
+  ChartBarIcon,
+  CheckBadgeIcon,
+  ClipboardDocumentCheckIcon,
+  ClockIcon,
+  CreditCardIcon,
+  DocumentDuplicateIcon,
+  MagnifyingGlassIcon,
+  ReceiptPercentIcon,
+  ShoppingBagIcon,
+  UserIcon,
+  UsersIcon,
+} from '@heroicons/react/24/solid';
+import {
   Card,
   CardContent,
   CardHeader,
   Unstable_Grid2 as Grid,
 } from '@mui/material';
-import {
-  CheckBadgeIcon,
-  CreditCardIcon,
-  MagnifyingGlassIcon,
-  ReceiptPercentIcon,
-} from '@heroicons/react/24/solid';
 
 import { PermissionCard } from './permission-card';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { useAuth } from 'src/hooks/use-auth';
 
 export const style = {
@@ -43,29 +52,59 @@ export const PermissionForm = () => {
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={1}
-              title="Register"
-              subtitle="Banking account"
-              icon={<CreditCardIcon />}
+              screenId={SCREENS.OVERVIEW}
+              title="Overview"
+              icon={<ChartBarIcon />}
               sx={{ height: '100%' }}
+              color="info.main"
             />
           </Grid>
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={2}
-              title="Interest Rate"
+              screenId={SCREENS.USERS}
+              title="Users"
+              icon={<UserIcon />}
+              sx={{ height: '100%' }}
+              color="info.main"
+            />
+          </Grid>
+          <Grid lg={4}>
+            <PermissionCard
+              userId={userId}
+              screenId={SCREENS.PRODUCTS}
+              title="Products"
+              icon={<ShoppingBagIcon />}
+              sx={{ height: '100%' }}
+              color="info.main"
+            />
+          </Grid>
+          <Grid lg={4}>
+            <PermissionCard
+              userId={userId}
+              screenId={SCREENS.TERMS}
+              title="Terms"
+              icon={<ClockIcon />}
+              sx={{ height: '100%' }}
+              color="info.main"
+            />
+          </Grid>
+          <Grid lg={4}>
+            <PermissionCard
+              userId={userId}
+              screenId={SCREENS.INTEREST_RATES}
+              title="Interest Rates"
               icon={<ReceiptPercentIcon />}
               sx={{ height: '100%' }}
-              color="primary.main"
+              color="info.main"
             />
           </Grid>
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={3}
-              title="Active"
-              icon={<CheckBadgeIcon />}
+              screenId={SCREENS.PAYMENT_METHODS}
+              title="Payment Methods"
+              icon={<DocumentDuplicateIcon />}
               sx={{ height: '100%' }}
               color="info.main"
             />
@@ -73,9 +112,9 @@ export const PermissionForm = () => {
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={4}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
+              screenId={SCREENS.ROLLOVER_PLANS}
+              title="Rollover Plans"
+              icon={<ArrowPathRoundedSquareIcon />}
               sx={{ height: '100%' }}
               color="info.main"
             />
@@ -83,9 +122,9 @@ export const PermissionForm = () => {
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={5}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
+              screenId={SCREENS.CUSTOMERS}
+              title="Customers"
+              icon={<UsersIcon />}
               sx={{ height: '100%' }}
               color="info.main"
             />
@@ -93,9 +132,9 @@ export const PermissionForm = () => {
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={6}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
+              screenId={SCREENS.ACCOUNTS}
+              title="Accounts"
+              icon={<CreditCardIcon />}
               sx={{ height: '100%' }}
               color="info.main"
             />
@@ -103,29 +142,9 @@ export const PermissionForm = () => {
           <Grid lg={4}>
             <PermissionCard
               userId={userId}
-              screenId={7}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
-              sx={{ height: '100%' }}
-              color="info.main"
-            />
-          </Grid>
-          <Grid lg={4}>
-            <PermissionCard
-              userId={userId}
-              screenId={8}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
-              sx={{ height: '100%' }}
-              color="info.main"
-            />
-          </Grid>
-          <Grid lg={4}>
-            <PermissionCard
-              userId={userId}
-              screenId={9}
-              title="Access"
-              icon={<MagnifyingGlassIcon />}
+              screenId={SCREENS.TRANSACTIONS}
+              title="Transactions"
+              icon={<ClipboardDocumentCheckIcon />}
               sx={{ height: '100%' }}
               color="info.main"
             />

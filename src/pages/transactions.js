@@ -42,7 +42,7 @@ const Page = () => {
     setRowsPerPage(event.target.value);
   }, []);
 
-  const isHas = usePermission(SCREENS.TRANSACTIONS);
+  const { isHas } = usePermission(SCREENS.TRANSACTIONS);
   if (!isHas) {
     return null;
   }

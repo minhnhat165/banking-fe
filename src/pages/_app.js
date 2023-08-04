@@ -8,6 +8,7 @@ import { CssBaseline } from '@mui/material';
 import Head from 'next/head';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import ReactQueryProvider from 'src/lib/react-query';
+import SocketClient from 'src/lib/socket-io';
 import { ThemeProvider } from '@mui/material/styles';
 import { Toaster } from 'react-hot-toast';
 import { createEmotionCache } from 'src/utils/create-emotion-cache';

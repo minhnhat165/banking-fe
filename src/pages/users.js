@@ -153,7 +153,9 @@ const Page = () => {
     },
   });
 
-  const isHas = usePermission(SCREENS.USERS);
+  const { isHas, isAll, isCreate, isDelete, isUpdate } = usePermission(
+    SCREENS.USERS,
+  );
   if (!isHas) {
     return null;
   }
@@ -210,22 +212,26 @@ const Page = () => {
                   </Button>
                 </Stack>
               </Stack>
-              <div>
-                <Button
-                  onClick={handleOpen}
-                  startIcon={
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
+              {(isAll || isCreate) && (
+                <div>
+                  <Button
+                    onClick={handleOpen}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                </div>
+              )}
             </Stack>
             <CustomersSearch />
             <UsersTable
+              allowEdit={isAll || isUpdate}
+              allowDelete={isAll || isDelete}
               count={data?.data?.total || 0}
               items={users}
               onPageChange={handlePageChange}

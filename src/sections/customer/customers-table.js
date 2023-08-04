@@ -40,6 +40,8 @@ export const CustomersTable = (props) => {
     selected = [],
     onDelete = () => {},
     onEdit = () => {},
+    allowEdit = false,
+    allowDelete = false,
   } = props;
 
   return (
@@ -85,19 +87,23 @@ export const CustomersTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton onClick={() => onEdit(item)} size="small">
-                          <SvgIcon fontSize="small">
-                            <PencilSquareIcon />
-                          </SvgIcon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => onDelete(item.id)}
-                          size="small"
-                        >
-                          <SvgIcon fontSize="small">
-                            <TrashIcon />
-                          </SvgIcon>
-                        </IconButton>
+                        {allowEdit && (
+                          <IconButton onClick={() => onEdit(item)} size="small">
+                            <SvgIcon fontSize="small">
+                              <PencilSquareIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
+                        {allowDelete && (
+                          <IconButton
+                            onClick={() => onDelete(item.id)}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <TrashIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
