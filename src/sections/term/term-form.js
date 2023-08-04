@@ -43,7 +43,7 @@ export const TermForm = ({ item, onSubmit, type = 'ADD' }) => {
       name: Yup.string().max(255).required('Name is required'),
       // value not allow decimal and min value is 1
       value: Yup.number()
-        .min(1)
+        .min(0)
         .max(36)
         .required('Value is required')
         .integer(),

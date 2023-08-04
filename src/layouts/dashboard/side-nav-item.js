@@ -1,6 +1,7 @@
+import { Box, ButtonBase } from '@mui/material';
+
 import NextLink from 'next/link';
 import PropTypes from 'prop-types';
-import { Box, ButtonBase } from '@mui/material';
 
 export const SideNavItem = (props) => {
   const { active = false, disabled, external, icon, path, title } = props;
@@ -8,14 +9,14 @@ export const SideNavItem = (props) => {
   const linkProps = path
     ? external
       ? {
-        component: 'a',
-        href: path,
-        target: '_blank'
-      }
+          component: 'a',
+          href: path,
+          target: '_blank',
+        }
       : {
-        component: NextLink,
-        href: path
-      }
+          component: NextLink,
+          href: path,
+        }
     : {};
 
   return (
@@ -32,11 +33,11 @@ export const SideNavItem = (props) => {
           textAlign: 'left',
           width: '100%',
           ...(active && {
-            backgroundColor: 'rgba(255, 255, 255, 0.04)'
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
           }),
           '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.04)'
-          }
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+          },
         }}
         {...linkProps}
       >
@@ -50,8 +51,8 @@ export const SideNavItem = (props) => {
               justifyContent: 'center',
               mr: 2,
               ...(active && {
-                color: 'primary.main'
-              })
+                color: 'primary.main',
+              }),
             }}
           >
             {icon}
@@ -68,11 +69,11 @@ export const SideNavItem = (props) => {
             lineHeight: '24px',
             whiteSpace: 'nowrap',
             ...(active && {
-              color: 'common.white'
+              color: 'common.white',
             }),
             ...(disabled && {
-              color: 'neutral.500'
-            })
+              color: 'neutral.500',
+            }),
           }}
         >
           {title}
@@ -88,5 +89,5 @@ SideNavItem.propTypes = {
   external: PropTypes.bool,
   icon: PropTypes.node,
   path: PropTypes.string,
-  title: PropTypes.string.isRequired
+  title: PropTypes.string.isRequired,
 };

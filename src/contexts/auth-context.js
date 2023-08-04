@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import PropTypes from 'prop-types';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE',

@@ -7,9 +7,9 @@ export const authApi = {
     return axiosClient.post(url, { email, password });
   },
 
-  register({ email, firstName, lastName, password }) {
+  register(data) {
     const url = `${baseUrl}/register`;
-    return axiosClient.post(url, { email, firstName, lastName, password });
+    return axiosClient.post(url, data);
   },
 
   logout() {
@@ -38,7 +38,6 @@ export const authApi = {
   },
 
   updateProfile({ firstName, lastName, phone, dob, address }) {
-    console.log(baseUrl);
     const url = `${baseUrl}/profile`;
     return axiosClient.patch(url, { firstName, lastName, phone, dob, address });
   },

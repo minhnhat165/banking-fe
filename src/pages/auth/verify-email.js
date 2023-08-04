@@ -11,7 +11,7 @@ import {
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Head from 'next/head';
 import Link from 'next/link';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 

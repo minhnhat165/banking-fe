@@ -6,7 +6,7 @@ import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Head from 'next/head';
 import { LoadingButton } from '@mui/lab';
 import { default as NextLink } from 'next/link';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
 import { toast } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { useState } from 'react';

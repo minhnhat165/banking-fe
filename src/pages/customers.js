@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { CustomerForm } from 'src/sections/customer/customer-form';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
@@ -18,8 +19,10 @@ import { CustomersTable } from 'src/sections/customer/customers-table';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { customerApi } from 'src/services/customer-api';
 import { toast } from 'react-hot-toast';
+import { usePermission } from 'src/hooks/use-permission';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -105,6 +108,12 @@ const Page = () => {
     },
   });
 
+  const isHas = usePermission(SCREENS.CUSTOMERS);
+
+  if (!isHas) {
+    return null;
+  }
+
   return (
     <>
       <Head>
@@ -141,6 +150,19 @@ const Page = () => {
                     }
                   >
                     Export
+                  </Button>
+                  <Button
+                    color="inherit"
+                    onClick={() => {
+                      queryClient.invalidateQueries(key);
+                    }}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <ArrowPathRoundedSquareIcon />
+                      </SvgIcon>
+                    }
+                  >
+                    Refresh
                   </Button>
                 </Stack>
               </Stack>

@@ -18,9 +18,11 @@ import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { RolloverPlanForm } from 'src/sections/rollover-plan/rollover-plan-form';
 import { RolloverPlansTable } from 'src/sections/rollover-plan/rollover-plans-table';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { paymentMethodApi } from 'src/services/payment-method-api';
 import { rolloverPlanApi } from 'src/services/rollover-plan-api';
 import { toast } from 'react-hot-toast';
+import { usePermission } from 'src/hooks/use-permission';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -63,6 +65,11 @@ const Page = () => {
       });
     },
   });
+
+  const isHas = usePermission(SCREENS.ROLLOVER_PLANS);
+  if (!isHas) {
+    return null;
+  }
 
   return (
     <>

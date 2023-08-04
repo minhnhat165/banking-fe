@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
@@ -18,6 +19,7 @@ import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { ProductsForm } from 'src/sections/product/products-form';
 import { ProductsTable } from 'src/sections/product/products-table';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { productApi } from 'src/services/product-api';
 import { toast } from 'react-hot-toast';
 
@@ -105,6 +107,11 @@ const Page = () => {
     },
   });
 
+  const isHas = usePermission(SCREENS.PRODUCTS);
+  if (!isHas) {
+    return null;
+  }
+
   return (
     <>
       <Head>
@@ -141,6 +148,19 @@ const Page = () => {
                     }
                   >
                     Export
+                  </Button>
+                  <Button
+                    color="inherit"
+                    onClick={() => {
+                      queryClient.invalidateQueries(key);
+                    }}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <ArrowPathRoundedSquareIcon />
+                      </SvgIcon>
+                    }
+                  >
+                    Refresh
                   </Button>
                 </Stack>
               </Stack>

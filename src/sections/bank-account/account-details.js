@@ -1,9 +1,11 @@
 import * as moment from 'moment';
 
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
-  Button,
   Card,
   CardActionArea,
   CardActions,
@@ -14,18 +16,22 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  SvgIcon,
   TextField,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ACCOUNT } from 'src/constant/account';
+import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import { LoadingButton } from '@mui/lab';
-import PropTypes from 'prop-types';
 import { SeverityPill } from 'src/components/severity-pill';
-import { paymentMethodApi } from 'src/services/payment-method-api';
+import { accountApi } from 'src/services/account-api';
 import { rolloverPlanApi } from 'src/services/rollover-plan-api';
-import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { useClient } from 'src/hooks/use-client';
+import { usePathname } from 'next/navigation';
 
 const statusMap = {
   0: {
@@ -63,7 +69,7 @@ export const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
 
-  height: '86%',
+  height: '90%',
   overflow: 'hidden',
   flexDirection: 'row',
   display: 'flex',
@@ -72,9 +78,13 @@ export const style = {
   p: 4,
 };
 
-export const AccountDetails = (props) => {
-  const { item = {} } = props;
-
+export const AccountDetails = ({
+  item = {},
+  onClose,
+  queryKey,
+  onSettle,
+  style: _style,
+}) => {
   const startDate = moment(item?.activatedDate || item?.createdDate);
 
   const maturityDate = moment(startDate).add(
@@ -99,6 +109,7 @@ export const AccountDetails = (props) => {
     <Card
       style={{
         ...style,
+        ..._style,
       }}
     >
       <Card
@@ -118,9 +129,11 @@ export const AccountDetails = (props) => {
         />
         <CardContent
           sx={{
+            pt: 0,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            overflow: 'auto',
           }}
         >
           <Box display="flex" justifyContent="space-between">
@@ -135,6 +148,12 @@ export const AccountDetails = (props) => {
               {statusMap[item.status]?.text}
             </SeverityPill>
           </Box>
+          {item.type === ACCOUNT.TYPE.DEPOSIT && (
+            <Box display="flex" justifyContent="space-between">
+              <strong>Interest rate</strong>
+              {item?.interestRate?.value}%
+            </Box>
+          )}
           <Divider />
 
           <Box display="flex" justifyContent="space-between">
@@ -199,6 +218,51 @@ export const AccountDetails = (props) => {
               }).format(item.balance)}
             </Typography>
           </Box>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={
+                <SvgIcon>
+                  <ChevronDownIcon />
+                </SvgIcon>
+              }
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>
+                <strong>Customer</strong>
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Full name</strong>
+                {item.customer?.firstName} {item.customer?.lastName}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Personal ID</strong>
+                {item.customer?.pin}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Email</strong>
+                {item.customer?.email}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Phone</strong>
+                {item.customer?.phone}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Gender</strong>
+                {item.customer.gender === 0 ? 'Female' : 'Male'}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Address</strong>
+                {item.customer.address}
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Date of birth</strong>
+                {moment(item.customer.dob).format('DD/MM/YYYY')}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
         </CardContent>
         {(item.status === ACCOUNT.STATUS.ACTIVATED ||
           item.status === ACCOUNT.STATUS.MATURITY) &&
@@ -222,28 +286,159 @@ export const AccountDetails = (props) => {
             </CardActionArea>
           )}
       </Card>
-      {isShowSettle && <Settlement account={item} onClose={hideSettle} />}
+      {isShowSettle && (
+        <Settlement
+          queryKey={queryKey}
+          account={item}
+          onConfirm={() => {
+            onClose && onClose();
+            onSettle && onSettle();
+          }}
+        />
+      )}
     </Card>
   );
 };
 
-const Settlement = ({ account }) => {
+const Settlement = ({ account, onConfirm, queryKey }) => {
   const [selectedRolloverPlan, setSelectedRolloverPlan] = useState(null);
+  const { isClient } = useClient();
   const { data } = useQuery({
     queryKey: 'rolloverPlan',
     queryFn: () => {
       return rolloverPlanApi.getAll({ page: 0, limit: 100 });
     },
   });
+
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: settleAccount, isLoading } = useMutation({
+    mutationFn: isClient ? accountApi.settleClient : accountApi.settle,
+    onSuccess: () => {
+      toast.success('Settle account successfully');
+      queryClient.invalidateQueries(queryKey);
+      onConfirm();
+    },
+  });
   const rolloverPlans = useMemo(() => {
-    const plans = data?.data?.items || [];
-    setSelectedRolloverPlan(plans[0]?.id);
-    return plans;
-  }, [data]);
+    const plans = data?.data?.items.filter((item) => {
+      if (account.status !== ACCOUNT.STATUS.MATURITY) {
+        return (
+          item.id.toString() ===
+            ACCOUNT.ROLLOVER.TRANSFER_TO_ACCOUNT.toString() ||
+          item.id.toString() === ACCOUNT.ROLLOVER.FULL_SETTLEMENT.toString()
+        );
+      }
+      return true;
+    });
+    if (plans?.length > 0) {
+      setSelectedRolloverPlan(plans[0]?.id);
+      return plans;
+    }
+    return [];
+  }, [account.status, data?.data?.items]);
+
+  const calResult = useMemo(() => {
+    const accountClone = { ...account };
+    const totalTime = moment().diff(moment(account.activatedDate), 'M');
+    let interestRateApplied = accountClone?.interestRate?.value;
+    let interest = 0;
+    let total = 0;
+    let debit = 0;
+    const isMaturity = accountClone.status === ACCOUNT.STATUS.MATURITY;
+    if (!isMaturity) {
+      interestRateApplied = 0.1;
+      switch (accountClone.paymentMethodId) {
+        case ACCOUNT.INTEREST_PAYMENT_METHOD.PREPAID:
+          debit = accountClone.balance - accountClone.principal;
+          total = accountClone.balance;
+          break;
+        case ACCOUNT.INTEREST_PAYMENT_METHOD.REGULAR:
+          let newBalance = accountClone.principal;
+
+          for (let i = 0; i < totalTime; i++) {
+            console.log(newBalance * (interestRateApplied / 100));
+            newBalance += newBalance * (interestRateApplied / 100);
+          }
+
+          if (accountClone.balance < newBalance) {
+            newBalance = accountClone.balance;
+          }
+          debit = accountClone.balance - newBalance;
+          total = newBalance;
+          interest = newBalance - accountClone.principal;
+          break;
+        case ACCOUNT.INTEREST_PAYMENT_METHOD.END_OF_TERM:
+          interest = calEndOfTermInterest({
+            balance: accountClone.principal,
+            months: totalTime,
+            interestRate: interestRateApplied,
+          });
+          total = accountClone.principal + interest;
+          break;
+        default:
+          break;
+      }
+    } else {
+      interest = accountClone.balance - accountClone.principal;
+      total = accountClone.balance;
+      interestRateApplied = accountClone?.interestRate?.value;
+    }
+
+    return {
+      interestRateApplied,
+      debit,
+      total,
+      totalTime,
+      interest,
+    };
+  }, [account]);
 
   const handleChange = (event) => {
     setSelectedRolloverPlan(event.target.value);
   };
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const accountNumberRef = useRef(null);
+  const handleSettle = async () => {
+    try {
+      const values = {
+        accountId: account.id,
+        rolloverId: selectedRolloverPlan,
+      };
+      if (
+        selectedRolloverPlan.toString() ===
+        ACCOUNT.ROLLOVER.TRANSFER_TO_ACCOUNT.toString()
+      ) {
+        const accountNumber = accountNumberRef.current.value;
+        if (!accountNumber) {
+          setErrorMessage('Please enter account number');
+          return;
+        }
+        if (accountNumber.length !== 16) {
+          setErrorMessage('Account number must be 16 digits');
+          return;
+        }
+
+        if (accountNumber === account.number) {
+          setErrorMessage('Account number must be different from current');
+          return;
+        }
+
+        const res = await accountApi.findByNumber(accountNumber);
+        values['bnfAccountId'] = res.data.id;
+      }
+      if (isClient) {
+        values['pin'] = account.pin;
+      }
+      await settleAccount(values);
+    } catch (error) {
+      setErrorMessage(
+        error?.statusCode === 404 ? 'Account not found' : error?.message,
+      );
+    }
+  };
+
   return (
     <Card
       sx={{
@@ -262,6 +457,7 @@ const Settlement = ({ account }) => {
       />
       <CardContent
         sx={{
+          pt: 0,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
@@ -275,29 +471,29 @@ const Settlement = ({ account }) => {
         )}
         <Box display="flex" justifyContent="space-between">
           <strong>Total time</strong>
-          {moment().diff(moment(account.activatedDate), 'M')} months
+          {calResult.totalTime} months
         </Box>
         <Box display="flex" justifyContent="space-between">
           <strong>Interest rate</strong>
-          0.1%
+          {calResult.interestRateApplied}%
         </Box>
         <Divider />
         <Box display="flex" justifyContent="space-between">
-          <strong>Total interest</strong>
+          <strong>Interest</strong>
           <Typography color="greenyellow">
             {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
               currency: 'VND',
-            }).format(0)}
+            }).format(calResult.interest)}
           </Typography>
         </Box>
         <Box display="flex" justifyContent="space-between">
-          <strong>Amount debit</strong>
+          <strong>Debit</strong>
           <Typography color="red">
             {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
               currency: 'VND',
-            }).format(0)}
+            }).format(calResult.debit)}
           </Typography>
         </Box>
         <Box display="flex" justifyContent="space-between">
@@ -306,7 +502,7 @@ const Settlement = ({ account }) => {
             {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
               currency: 'VND',
-            }).format(0)}
+            }).format(calResult.total)}
           </Typography>
         </Box>
         <Divider />
@@ -331,7 +527,17 @@ const Settlement = ({ account }) => {
               </Select>
               {parseInt(selectedRolloverPlan) ===
                 ACCOUNT.ROLLOVER.TRANSFER_TO_ACCOUNT && (
-                <TextField required label="Account number" type="number" />
+                <>
+                  <TextField
+                    inputRef={accountNumberRef}
+                    required
+                    label="Account number"
+                    type="number"
+                  />
+                  {errorMessage && (
+                    <Typography color="red">{errorMessage}</Typography>
+                  )}
+                </>
               )}
             </Box>
           </FormControl>
@@ -345,9 +551,14 @@ const Settlement = ({ account }) => {
         }}
       >
         <CardActions>
-          <Button type="submit" variant="contained">
+          <LoadingButton
+            loading={isLoading}
+            onClick={handleSettle}
+            type="submit"
+            variant="contained"
+          >
             Confirm settlement
-          </Button>
+          </LoadingButton>
         </CardActions>
       </CardActionArea>
     </Card>
@@ -355,12 +566,9 @@ const Settlement = ({ account }) => {
 };
 
 // Prop Types for the AccountDetails component
-AccountDetails.propTypes = {
-  item: PropTypes.shape({
-    type: PropTypes.number,
-    status: PropTypes.number,
-    number: PropTypes.string,
-    balance: PropTypes.number,
-    // Add more prop types as needed
-  }).isRequired,
+AccountDetails.propTypes = {};
+
+const calEndOfTermInterest = ({ interestRate, balance, months }) => {
+  const interest = (balance * interestRate * months) / (12 * 100);
+  return interest;
 };

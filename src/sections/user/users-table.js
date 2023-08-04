@@ -13,7 +13,13 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { LockOpenIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
+import {
+  LockClosedIcon,
+  LockOpenIcon,
+  PencilSquareIcon,
+  ShieldCheckIcon,
+  TrashIcon,
+} from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -27,9 +33,9 @@ const statusMap = {
 };
 
 const userStatusMap = {
-  0: 'Pending',
+  0: 'Inactive',
   1: 'Active',
-  2: 'Blocked',
+  2: 'locked',
 };
 
 const roleMap = {
@@ -41,15 +47,16 @@ export const UsersTable = (props) => {
   const {
     count = 0,
     items = [],
-    onDeselectAll,
-    onDeselectOne,
     onPageChange = () => {},
     onRowsPerPageChange,
-    onSelectAll,
-    onSelectOne,
     page = 0,
     rowsPerPage = 0,
     selected = [],
+    onDelete = () => {},
+    onEdit = () => {},
+    onLock = () => {},
+    onUnlock = () => {},
+    onPermission = () => {},
   } = props;
 
   return (
@@ -64,36 +71,30 @@ export const UsersTable = (props) => {
                 <TableCell>Address</TableCell>
                 <TableCell>Phone</TableCell>
                 <TableCell align="center">Status</TableCell>
-                <TableCell align="center">Role</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((customer) => {
-                const isSelected = selected.includes(customer.id);
+              {items.map((item) => {
+                const isSelected = selected.includes(item.id);
                 return (
-                  <TableRow hover key={customer.id} selected={isSelected}>
+                  <TableRow hover key={item.id} selected={isSelected}>
                     <TableCell>
                       <Stack alignItems="center" direction="row" spacing={2}>
-                        <Avatar src={customer.avatar}>
-                          {getInitials(customer.name)}
+                        <Avatar src={item.avatar}>
+                          {getInitials(item.name)}
                         </Avatar>
                         <Typography variant="subtitle2">
-                          {customer.lastName + ' ' + customer.firstName}
+                          {item.lastName + ' ' + item.firstName}
                         </Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.address}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell>{item.email}</TableCell>
+                    <TableCell>{item.address}</TableCell>
+                    <TableCell>{item.phone}</TableCell>
                     <TableCell align="center">
-                      <SeverityPill color={statusMap[customer.status]}>
-                        {userStatusMap[customer.status]}
-                      </SeverityPill>
-                    </TableCell>
-                    <TableCell align="center">
-                      <SeverityPill color={statusMap[customer.roleId]}>
-                        {roleMap[customer.roleId]}
+                      <SeverityPill color={statusMap[item.status]}>
+                        {userStatusMap[item.status]}
                       </SeverityPill>
                     </TableCell>
                     <TableCell>
@@ -102,14 +103,41 @@ export const UsersTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton size="small">
+                        <IconButton onClick={() => onEdit(item)} size="small">
                           <SvgIcon fontSize="small">
                             <PencilSquareIcon />
                           </SvgIcon>
                         </IconButton>
-                        <IconButton size="small">
+                        <IconButton
+                          onClick={() => onDelete(item.id)}
+                          size="small"
+                        >
                           <SvgIcon fontSize="small">
-                            <LockOpenIcon />
+                            <TrashIcon />
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton
+                          onClick={() =>
+                            item.status === 2
+                              ? onUnlock(item.id)
+                              : onLock(item.id)
+                          }
+                          size="small"
+                        >
+                          <SvgIcon fontSize="small">
+                            {item.status === 2 ? (
+                              <LockClosedIcon />
+                            ) : (
+                              <LockOpenIcon />
+                            )}
+                          </SvgIcon>
+                        </IconButton>
+                        <IconButton
+                          onClick={() => onPermission(item)}
+                          size="small"
+                        >
+                          <SvgIcon fontSize="small">
+                            <ShieldCheckIcon />
                           </SvgIcon>
                         </IconButton>
                       </Stack>
@@ -146,4 +174,9 @@ UsersTable.propTypes = {
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
   selected: PropTypes.array,
+  onDelete: PropTypes.func,
+  onEdit: PropTypes.func,
+  onLock: PropTypes.func,
+  onUnlock: PropTypes.func,
+  onPermission: PropTypes.func,
 };

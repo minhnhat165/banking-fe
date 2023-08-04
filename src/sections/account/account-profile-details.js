@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 
 import { LoadingButton } from '@mui/lab';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
 import { toast } from 'react-hot-toast';
 import { useAuth } from 'src/hooks/use-auth';
 import { useFormik } from 'formik';

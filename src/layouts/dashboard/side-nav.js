@@ -16,12 +16,15 @@ import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SideNavItem } from './side-nav-item';
 import { items } from './config';
+import { useAuth } from 'src/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 
 export const SideNav = (props) => {
   const { open, onClose } = props;
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+
+  const userPermissions = useAuth().user.permissions || [];
 
   const content = (
     <Scrollbar
@@ -99,6 +102,14 @@ export const SideNav = (props) => {
           >
             {items.map((item) => {
               const active = item.path ? pathname === item.path : false;
+              const screenId = item?.screenId;
+              const hasPermission = userPermissions.find(
+                (permission) => permission.screenId === screenId,
+              );
+
+              if (screenId && !hasPermission) {
+                return null;
+              }
 
               return (
                 <SideNavItem

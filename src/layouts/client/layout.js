@@ -1,20 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { SideNav } from './side-nav';
-import { TopNav } from './top-nav';
+import ResponsiveAppBar from './app-bar';
 import { styled } from '@mui/material/styles';
 import { usePathname } from 'next/navigation';
 import { withAuthGuard } from 'src/hocs/with-auth-guard';
-
-const SIDE_NAV_WIDTH = 280;
 
 const LayoutRoot = styled('div')(({ theme }) => ({
   display: 'flex',
   flex: '1 1 auto',
   maxWidth: '100%',
-  [theme.breakpoints.up('lg')]: {
-    paddingLeft: SIDE_NAV_WIDTH,
-  },
+  background: '#807cae',
 }));
 
 const LayoutContainer = styled('div')({
@@ -45,8 +40,7 @@ export const Layout = withAuthGuard((props) => {
 
   return (
     <>
-      <TopNav onNavOpen={() => setOpenNav(true)} />
-      <SideNav onClose={() => setOpenNav(false)} open={openNav} />
+      <ResponsiveAppBar />
       <LayoutRoot>
         <LayoutContainer>{children}</LayoutContainer>
       </LayoutRoot>

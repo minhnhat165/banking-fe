@@ -6,7 +6,8 @@ import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Head from 'next/head';
 import { LoadingButton } from '@mui/lab';
 import NextLink from 'next/link';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
+import { emailRegExp } from 'src/sections/bank-account/bank-account-form';
 import { toast } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ const Page = () => {
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email('Must be a valid email')
+        .matches(emailRegExp, 'Email is not valid')
         .max(255)
         .required('Email is required'),
       firstName: Yup.string().max(255).required('First name is required'),

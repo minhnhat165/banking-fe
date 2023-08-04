@@ -14,6 +14,19 @@ import {
 
 import { SvgIcon } from '@mui/material';
 
+export const SCREENS = {
+  OVERVIEW: 1,
+  USERS: 2,
+  PRODUCTS: 3,
+  TERMS: 4,
+  INTEREST_RATES: 5,
+  PAYMENT_METHODS: 6,
+  ROLLOVER_PLANS: 7,
+  CUSTOMERS: 8,
+  ACCOUNTS: 9,
+  TRANSACTIONS: 10,
+};
+
 export const items = [
   {
     title: 'Overview',
@@ -23,6 +36,7 @@ export const items = [
         <ChartBarIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.OVERVIEW,
   },
 
   {
@@ -33,6 +47,7 @@ export const items = [
         <UserIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.USERS,
   },
   {
     title: 'Products',
@@ -42,6 +57,7 @@ export const items = [
         <ShoppingBagIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.PRODUCTS,
   },
   {
     title: 'Terms',
@@ -51,6 +67,7 @@ export const items = [
         <ClockIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.TERMS,
   },
   {
     title: 'Interest Rates',
@@ -60,6 +77,7 @@ export const items = [
         <ReceiptPercentIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.INTEREST_RATES,
   },
   {
     title: 'Payment Methods',
@@ -69,6 +87,7 @@ export const items = [
         <DocumentDuplicateIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.PAYMENT_METHODS,
   },
   {
     title: 'Rollover Plans',
@@ -78,6 +97,7 @@ export const items = [
         <ArrowPathRoundedSquareIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.ROLLOVER_PLANS,
   },
   {
     title: 'Customers',
@@ -87,6 +107,7 @@ export const items = [
         <UsersIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.CUSTOMERS,
   },
   {
     title: 'Accounts',
@@ -96,6 +117,7 @@ export const items = [
         <CreditCardIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.ACCOUNTS,
   },
   {
     title: 'Transactions',
@@ -105,6 +127,7 @@ export const items = [
         <ClipboardDocumentCheckIcon />
       </SvgIcon>
     ),
+    screenId: SCREENS.TRANSACTIONS,
   },
 
   {

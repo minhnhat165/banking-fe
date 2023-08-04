@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { LoadingButton } from '@mui/lab';
 import { productApi } from 'src/services/product-api';
@@ -52,7 +52,10 @@ export const InterestRateForm = ({ item, onSubmit, type = 'ADD' }) => {
   });
 
   const products = data?.data?.items || [];
-  const terms = termData?.data?.items || [];
+  const terms = useMemo(() => {
+    const items = termData?.data?.items.filter((term) => term.value !== 0);
+    return items;
+  }, [termData]);
 
   const [isLoading, setIsLoading] = useState(false);
   const formik = useFormik({
@@ -95,7 +98,9 @@ export const InterestRateForm = ({ item, onSubmit, type = 'ADD' }) => {
         );
         changedValues.id = item?.id;
         if (parseInt(changedValues.productId) === notProductId) {
-          delete changedValues.termId;
+          changedValues.termId = termData?.data?.items.find(
+            (term) => term.value === 0,
+          )?.id;
         }
         await onSubmit(changedValues);
       } catch (err) {

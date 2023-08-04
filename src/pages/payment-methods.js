@@ -6,8 +6,10 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import { PaymentMethodForm } from 'src/sections/payment-method/payment-method-form';
 import { PaymentMethodsTable } from 'src/sections/payment-method/payment-methods-table';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { paymentMethodApi } from 'src/services/payment-method-api';
 import { toast } from 'react-hot-toast';
+import { usePermission } from 'src/hooks/use-permission';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -50,6 +52,11 @@ const Page = () => {
       });
     },
   });
+
+  const isHas = usePermission(SCREENS.PAYMENT_METHODS);
+  if (!isHas) {
+    return null;
+  }
 
   return (
     <>

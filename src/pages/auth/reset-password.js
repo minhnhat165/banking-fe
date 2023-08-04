@@ -6,7 +6,7 @@ import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Head from 'next/head';
 import Link from 'next/link';
 import { LoadingButton } from '@mui/lab';
-import { authApi } from 'src/services/authApi';
+import { authApi } from 'src/services/auth-api';
 import { toast } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { useSearchParams } from 'next/navigation';

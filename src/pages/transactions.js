@@ -9,13 +9,16 @@ import {
 import { useCallback, useState } from 'react';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { TransactionsTable } from 'src/sections/transaction/transactions-table';
 import { transactionApi } from 'src/services/transaction-api';
+import { usePermission } from 'src/hooks/use-permission';
 import { useQuery } from '@tanstack/react-query';
 
 const Page = () => {
@@ -38,6 +41,11 @@ const Page = () => {
   const handleRowsPerPageChange = useCallback((event) => {
     setRowsPerPage(event.target.value);
   }, []);
+
+  const isHas = usePermission(SCREENS.TRANSACTIONS);
+  if (!isHas) {
+    return null;
+  }
 
   return (
     <>
@@ -75,6 +83,19 @@ const Page = () => {
                     }
                   >
                     Export
+                  </Button>
+                  <Button
+                    color="inherit"
+                    onClick={() => {
+                      queryClient.invalidateQueries(key);
+                    }}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <ArrowPathRoundedSquareIcon />
+                      </SvgIcon>
+                    }
+                  >
+                    Refresh
                   </Button>
                 </Stack>
               </Stack>

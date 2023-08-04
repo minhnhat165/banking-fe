@@ -2,28 +2,38 @@ import {
   Box,
   Button,
   Container,
+  Modal,
   Stack,
   SvgIcon,
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
+import { PermissionForm } from 'src/sections/user/permission-form';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import { SCREENS } from 'src/layouts/dashboard/config';
+import { UserForm } from 'src/sections/user/user-form';
 import { UsersTable } from 'src/sections/user/users-table';
-import { useQuery } from '@tanstack/react-query';
+import { authApi } from 'src/services/auth-api';
+import { toast } from 'react-hot-toast';
+import { usePermission } from 'src/hooks/use-permission';
 import { userApi } from 'src/services/user-api';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const key = ['users', { page, rowsPerPage }];
+
   const { data } = useQuery({
-    queryKey: ['users', { page, rowsPerPage }],
+    queryKey: key,
     queryFn: () => {
       return userApi.getAll({ page, limit: rowsPerPage });
     },
@@ -38,6 +48,115 @@ const Page = () => {
   const handleRowsPerPageChange = useCallback((event) => {
     setRowsPerPage(event.target.value);
   }, []);
+
+  const [selected, setSelected] = useState(null);
+  const queryClient = useQueryClient();
+
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const [openEdit, setOpenEdit] = useState(false);
+  const handleOpenEdit = () => {
+    setOpenEdit(true);
+  };
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
+  };
+
+  const [openPermission, setOpenPermission] = useState(false);
+  const handleOpenPermission = () => {
+    setOpenPermission(true);
+  };
+  const handleClosePermission = () => {
+    setOpenPermission(false);
+  };
+
+  // create a new product
+  const { mutateAsync: create } = useMutation({
+    mutationFn: authApi.register,
+    onSuccess: (data) => {
+      setOpen(false);
+      queryClient.invalidateQueries(key);
+      toast.success('Create user successfully', {
+        position: 'center',
+      });
+    },
+  });
+
+  // update a product
+
+  const { mutateAsync: update } = useMutation({
+    mutationFn: userApi.update,
+    onSuccess: (data) => {
+      setOpenEdit(false);
+      queryClient.invalidateQueries(key);
+      toast.success('Update user successfully', {
+        position: 'center',
+      });
+    },
+  });
+
+  // delete a product
+
+  const { mutateAsync: deleteItem } = useMutation({
+    mutationFn: userApi.delete,
+    onSuccess: (data) => {
+      setOpen(false);
+      queryClient.invalidateQueries(key);
+      toast.success('Delete user successfully', {
+        position: 'top-center',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message, {
+        position: 'top-center',
+      });
+    },
+  });
+
+  // lock a user
+
+  const { mutateAsync: lock } = useMutation({
+    mutationFn: userApi.lock,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(key);
+      toast.success('Lock user successfully', {
+        position: 'top-center',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message, {
+        position: 'top-center',
+      });
+    },
+  });
+
+  // unlock a user
+
+  const { mutateAsync: unlock } = useMutation({
+    mutationFn: userApi.unlock,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(key);
+      toast.success('Unlock user successfully', {
+        position: 'top-center',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message, {
+        position: 'top-center',
+      });
+    },
+  });
+
+  const isHas = usePermission(SCREENS.USERS);
+  if (!isHas) {
+    return null;
+  }
 
   return (
     <>
@@ -76,10 +195,24 @@ const Page = () => {
                   >
                     Export
                   </Button>
+                  <Button
+                    color="inherit"
+                    onClick={() => {
+                      queryClient.invalidateQueries(key);
+                    }}
+                    startIcon={
+                      <SvgIcon fontSize="small">
+                        <ArrowPathRoundedSquareIcon />
+                      </SvgIcon>
+                    }
+                  >
+                    Refresh
+                  </Button>
                 </Stack>
               </Stack>
               <div>
                 <Button
+                  onClick={handleOpen}
                   startIcon={
                     <SvgIcon fontSize="small">
                       <PlusIcon />
@@ -99,10 +232,42 @@ const Page = () => {
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
               rowsPerPage={rowsPerPage}
+              onDelete={deleteItem}
+              onEdit={(item) => {
+                setSelected(item);
+                handleOpenEdit();
+              }}
+              onPermission={(item) => {
+                setSelected(item);
+                handleOpenPermission();
+              }}
+              onLock={lock}
+              onUnlock={unlock}
             />
           </Stack>
         </Container>
       </Box>
+      <Modal open={open} onClose={handleClose}>
+        <Box>
+          <UserForm
+            item={{
+              name: '',
+              description: '',
+            }}
+            onSubmit={create}
+          />
+        </Box>
+      </Modal>
+      <Modal open={openEdit} onClose={handleCloseEdit}>
+        <Box>
+          <UserForm type="EDIT" item={selected} onSubmit={update} />
+        </Box>
+      </Modal>
+      <Modal open={openPermission} onClose={handleClosePermission}>
+        <Box>
+          <PermissionForm type="EDIT" item={selected} onSubmit={update} />
+        </Box>
+      </Modal>
     </>
   );
 };
