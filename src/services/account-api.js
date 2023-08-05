@@ -23,6 +23,10 @@ export const accountApi = {
     const url = `${baseUrl}/number/${number}`;
     return axiosClient.get(url);
   },
+  check(data) {
+    const url = `${baseUrl}/check-register`;
+    return axiosClient.post(url, data);
+  },
   findByNumberClient(data) {
     const url = `${baseUrl}/client/number`;
     return axiosClient.post(url, data);
@@ -40,5 +44,18 @@ export const accountApi = {
   activate(data) {
     const url = `${baseUrl}/activate`;
     return axiosClient.patch(url, data);
+  },
+  getOverview() {
+    const url = `${baseUrl}/overview`;
+    return axiosClient.get(url);
+  },
+
+  register(data) {
+    const url = `${baseUrl}/register`;
+    return axiosClient.post(url, data);
+  },
+  verifyOtp(data) {
+    const url = `${baseUrl}/verify-otp`;
+    return axiosClient.post(url, data);
   },
 };

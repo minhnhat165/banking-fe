@@ -129,14 +129,4 @@ export const items = [
     ),
     screenId: SCREENS.TRANSACTIONS,
   },
-
-  {
-    title: 'Settings',
-    path: '/settings',
-    icon: (
-      <SvgIcon fontSize="small">
-        <CogIcon />
-      </SvgIcon>
-    ),
-  },
 ];

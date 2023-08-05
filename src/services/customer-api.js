@@ -24,4 +24,9 @@ export const customerApi = {
     const url = `${baseUrl}/pin/${pin}`;
     return axiosClient.get(url);
   },
+
+  getOverview() {
+    const url = `${baseUrl}/overview`;
+    return axiosClient.get(url);
+  },
 };

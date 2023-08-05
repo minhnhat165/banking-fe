@@ -83,7 +83,7 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
 
   // term in interest rate, get all terms unique
   const terms = useMemo(() => {
-    const terms = interestRates.map((item) => item.term);
+    const terms = interestRates.filter((item) => item.term.value !== 0);
     return [...new Set(terms)];
   }, [interestRates]);
 
@@ -95,7 +95,9 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
       firstName: item?.customer?.firstName || '',
       lastName: item?.customer?.lastName || '',
       pin: item?.customer?.pin || '',
-      dob: item?.customer?.dob || moment().format('YYYY-MM-DD'),
+      dob:
+        item?.customer?.dob ||
+        moment().subtract(18, 'years').format('YYYY-MM-DD'),
       phone: item?.customer?.phone || '',
       gender: item?.customer?.gender || 0,
       address: item?.customer?.address || '',
@@ -114,7 +116,12 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
       firstName: Yup.string().max(255).required('First name is required'),
       lastName: Yup.string().max(255).required('Last name is required'),
       pin: Yup.string().min(12).max(12).required('Pin is required'),
-      dob: Yup.string().required('Date of birth is required'),
+      dob: Yup.string()
+        .required('Date of birth is required')
+        .test('age', 'Age must be greater than 18', (value) => {
+          const age = moment().diff(value, 'years');
+          return age >= 18;
+        }),
       phone: Yup.string().matches(phoneRegExp, 'Phone number is not valid'),
       address: Yup.string().max(255).required('Address is required'),
     }),

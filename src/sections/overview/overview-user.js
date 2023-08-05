@@ -10,15 +10,15 @@ import {
 import ArrowDownIcon from '@heroicons/react/24/solid/ArrowDownIcon';
 import ArrowUpIcon from '@heroicons/react/24/solid/ArrowUpIcon';
 import PropTypes from 'prop-types';
-import UsersIcon from '@heroicons/react/24/solid/UsersIcon';
-import { customerApi } from 'src/services/customer-api';
+import { UserIcon } from '@heroicons/react/24/solid';
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { userApi } from 'src/services/user-api';
 
-export const OverviewTotalCustomers = ({ sx }) => {
+export const OverviewUser = ({ sx }) => {
   const { data } = useQuery({
-    queryKey: 'customers-overview',
-    queryFn: () => customerApi.getOverview(),
+    queryKey: 'user-overview',
+    queryFn: () => userApi.getOverview(),
   });
 
   const overview = useMemo(() => {
@@ -88,19 +88,19 @@ export const OverviewTotalCustomers = ({ sx }) => {
         >
           <Stack spacing={1}>
             <Typography color="text.secondary" variant="overline">
-              Total Customers
+              Total Users
             </Typography>
             <Typography variant="h4">{overview.total}</Typography>
           </Stack>
           <Avatar
             sx={{
-              backgroundColor: 'success.main',
+              backgroundColor: 'error.main',
               height: 56,
               width: 56,
             }}
           >
             <SvgIcon>
-              <UsersIcon />
+              <UserIcon />
             </SvgIcon>
           </Avatar>
         </Stack>
@@ -112,9 +112,9 @@ export const OverviewTotalCustomers = ({ sx }) => {
   );
 };
 
-OverviewTotalCustomers.propTypes = {
+OverviewUser.prototypes = {
   difference: PropTypes.number,
   positive: PropTypes.bool,
-  value: PropTypes.string.isRequired,
   sx: PropTypes.object,
+  value: PropTypes.string.isRequired,
 };

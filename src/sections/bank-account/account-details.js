@@ -353,7 +353,7 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
       switch (accountClone.paymentMethodId) {
         case ACCOUNT.INTEREST_PAYMENT_METHOD.PREPAID:
           debit = accountClone.balance - accountClone.principal;
-          total = accountClone.balance;
+          total = accountClone.principal;
           break;
         case ACCOUNT.INTEREST_PAYMENT_METHOD.REGULAR:
           let newBalance = accountClone.principal;

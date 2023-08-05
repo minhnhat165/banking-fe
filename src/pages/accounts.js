@@ -7,7 +7,7 @@ import {
   SvgIcon,
   Typography,
 } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AccountDetails } from 'src/sections/bank-account/account-details';
@@ -24,16 +24,26 @@ import { SCREENS } from 'src/layouts/dashboard/config';
 import { accountApi } from 'src/services/account-api';
 import { toast } from 'react-hot-toast';
 import { usePermission } from 'src/hooks/use-permission';
+import { useSearchParams } from 'next/navigation';
+import { AccountsSearch } from 'src/sections/bank-account/account-search';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const key = ['accounts', { page, rowsPerPage }];
+  const params = useSearchParams();
+  const options = useMemo(() => {
+    const result = {};
+    params.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }, [params]);
+  const key = ['accounts', { page, rowsPerPage, ...options }];
 
   const { data } = useQuery({
     queryKey: key,
     queryFn: () => {
-      return accountApi.getAll({ page, limit: rowsPerPage });
+      return accountApi.getAll({ page, limit: rowsPerPage, ...options });
     },
   });
 
@@ -190,7 +200,7 @@ const Page = () => {
                 </div>
               )}
             </Stack>
-            <CustomersSearch />
+            <AccountsSearch />
             <AccountsTable
               allowEdit={isAll || isUpdate}
               allowDelete={isAll || isDelete}

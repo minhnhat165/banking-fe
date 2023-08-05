@@ -3,13 +3,12 @@ import { useCallback, useEffect, useState } from 'react';
 import ResponsiveAppBar from './app-bar';
 import { styled } from '@mui/material/styles';
 import { usePathname } from 'next/navigation';
-import { withAuthGuard } from 'src/hocs/with-auth-guard';
 
 const LayoutRoot = styled('div')(({ theme }) => ({
   display: 'flex',
   flex: '1 1 auto',
   maxWidth: '100%',
-  background: '#807cae',
+  background: '#d7d7d7',
 }));
 
 const LayoutContainer = styled('div')({
@@ -19,7 +18,7 @@ const LayoutContainer = styled('div')({
   width: '100%',
 });
 
-export const Layout = withAuthGuard((props) => {
+export const Layout = (props) => {
   const { children } = props;
   const pathname = usePathname();
   const [openNav, setOpenNav] = useState(false);
@@ -46,4 +45,4 @@ export const Layout = withAuthGuard((props) => {
       </LayoutRoot>
     </>
   );
-});
+};

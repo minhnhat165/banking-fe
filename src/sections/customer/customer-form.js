@@ -50,7 +50,7 @@ export const CustomerForm = ({ item, onSubmit, type = 'ADD' }) => {
       firstName: item?.firstName || '',
       lastName: item?.lastName || '',
       pin: item?.pin || '',
-      dob: item?.dob || moment().format('YYYY-MM-DD'),
+      dob: item?.dob || moment().subtract(18, 'years').format('YYYY-MM-DD'),
       phone: item?.phone || '',
       gender: item?.gender || 0,
       address: item?.address || '',
@@ -65,7 +65,12 @@ export const CustomerForm = ({ item, onSubmit, type = 'ADD' }) => {
       firstName: Yup.string().max(255).required('First name is required'),
       lastName: Yup.string().max(255).required('Last name is required'),
       pin: Yup.string().min(12).max(12).required('Pin is required'),
-      dob: Yup.string().required('Date of birth is required'),
+      dob: Yup.string()
+        .required('Date of birth is required')
+        .test('age', 'Age must be greater than 18', (value) => {
+          const age = moment().diff(value, 'years');
+          return age >= 18;
+        }),
       phone: Yup.string().matches(phoneRegExp, 'Phone number is not valid'),
       address: Yup.string().max(255).required('Address is required'),
     }),

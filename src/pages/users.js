@@ -7,35 +7,45 @@ import {
   SvgIcon,
   Typography,
 } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import { PermissionForm } from 'src/sections/user/permission-form';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { SCREENS } from 'src/layouts/dashboard/config';
+import { UserDetails } from 'src/sections/user/user-details';
 import { UserForm } from 'src/sections/user/user-form';
+import { UsersSearch } from 'src/sections/user/users-search';
 import { UsersTable } from 'src/sections/user/users-table';
 import { authApi } from 'src/services/auth-api';
 import { toast } from 'react-hot-toast';
 import { usePermission } from 'src/hooks/use-permission';
+import { useSearchParams } from 'next/navigation';
 import { userApi } from 'src/services/user-api';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const params = useSearchParams();
+  const options = useMemo(() => {
+    const result = {};
+    params.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }, [params]);
 
-  const key = ['users', { page, rowsPerPage }];
+  const key = ['users', { page, rowsPerPage, ...options }];
 
   const { data } = useQuery({
     queryKey: key,
     queryFn: () => {
-      return userApi.getAll({ page, limit: rowsPerPage });
+      return userApi.getAll({ page, limit: rowsPerPage, ...options });
     },
   });
 
@@ -66,6 +76,14 @@ const Page = () => {
   };
   const handleCloseEdit = () => {
     setOpenEdit(false);
+  };
+
+  const [openDetails, setOpenDetails] = useState(false);
+  const handleOpenDetails = () => {
+    setOpenDetails(true);
+  };
+  const handleCloseDetails = () => {
+    setOpenDetails(false);
   };
 
   const [openPermission, setOpenPermission] = useState(false);
@@ -228,7 +246,7 @@ const Page = () => {
                 </div>
               )}
             </Stack>
-            <CustomersSearch />
+            <UsersSearch />
             <UsersTable
               allowEdit={isAll || isUpdate}
               allowDelete={isAll || isDelete}
@@ -242,6 +260,10 @@ const Page = () => {
               onEdit={(item) => {
                 setSelected(item);
                 handleOpenEdit();
+              }}
+              onShowDetails={(item) => {
+                setSelected(item);
+                handleOpenDetails();
               }}
               onPermission={(item) => {
                 setSelected(item);
@@ -271,7 +293,12 @@ const Page = () => {
       </Modal>
       <Modal open={openPermission} onClose={handleClosePermission}>
         <Box>
-          <PermissionForm type="EDIT" item={selected} onSubmit={update} />
+          <PermissionForm userId={selected?.id} />
+        </Box>
+      </Modal>
+      <Modal open={openDetails} onClose={handleCloseDetails}>
+        <Box>
+          <UserDetails item={selected} />
         </Box>
       </Modal>
     </>

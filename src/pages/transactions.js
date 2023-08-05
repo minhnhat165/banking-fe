@@ -2,33 +2,44 @@ import {
   Box,
   Button,
   Container,
+  Modal,
   Stack,
   SvgIcon,
   Typography,
 } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
+import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { CustomersSearch } from 'src/sections/customer/customers-search';
-import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
+import { useQuery } from '@tanstack/react-query';
 import Head from 'next/head';
-import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import { usePermission } from 'src/hooks/use-permission';
 import { SCREENS } from 'src/layouts/dashboard/config';
+import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
+import { CustomersSearch } from 'src/sections/customer/customers-search';
+import { TransactionDetails } from 'src/sections/transaction/transaction-details';
 import { TransactionsTable } from 'src/sections/transaction/transactions-table';
 import { transactionApi } from 'src/services/transaction-api';
-import { usePermission } from 'src/hooks/use-permission';
-import { useQuery } from '@tanstack/react-query';
+import { TransactionsSearch } from 'src/sections/transaction/transactions-search';
+import { useSearchParams } from 'next/navigation';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const params = useSearchParams();
+  const options = useMemo(() => {
+    const result = {};
+    params.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }, [params]);
 
   const { data } = useQuery({
-    queryKey: ['transactions', { page, rowsPerPage }],
+    queryKey: ['transactions', { page, rowsPerPage, ...options }],
     queryFn: () => {
-      return transactionApi.getAll({ page, limit: rowsPerPage });
+      return transactionApi.getAll({ page, limit: rowsPerPage, ...options });
     },
   });
 
@@ -41,6 +52,15 @@ const Page = () => {
   const handleRowsPerPageChange = useCallback((event) => {
     setRowsPerPage(event.target.value);
   }, []);
+  const [openDetails, setOpenDetails] = useState(false);
+  const handleOpenDetails = () => {
+    setOpenDetails(true);
+  };
+  const handleCloseDetails = () => {
+    setOpenDetails(false);
+  };
+
+  const [selected, setSelected] = useState(null);
 
   const { isHas } = usePermission(SCREENS.TRANSACTIONS);
   if (!isHas) {
@@ -99,20 +119,8 @@ const Page = () => {
                   </Button>
                 </Stack>
               </Stack>
-              <div>
-                <Button
-                  startIcon={
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
             </Stack>
-            <CustomersSearch />
+            <TransactionsSearch />
             <TransactionsTable
               count={data?.data?.total || 0}
               items={items}
@@ -120,10 +128,19 @@ const Page = () => {
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
               rowsPerPage={rowsPerPage}
+              onShowDetails={(item) => {
+                setSelected(item);
+                handleOpenDetails();
+              }}
             />
           </Stack>
         </Container>
       </Box>
+      <Modal open={openDetails} onClose={handleCloseDetails}>
+        <Box>
+          <TransactionDetails item={selected} />
+        </Box>
+      </Modal>
     </>
   );
 };

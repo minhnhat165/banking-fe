@@ -35,8 +35,7 @@ export const style = {
   p: 4,
 };
 
-export const PermissionForm = () => {
-  const userId = useAuth().user.id || '';
+export const PermissionForm = ({ userId }) => {
   return (
     <Card style={style}>
       <CardHeader title="Permission" />

@@ -7,7 +7,7 @@ import {
   SvgIcon,
   Typography,
 } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
@@ -18,23 +18,31 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { ProductsForm } from 'src/sections/product/products-form';
+import { ProductsSearch } from 'src/sections/product/products-search';
 import { ProductsTable } from 'src/sections/product/products-table';
 import { SCREENS } from 'src/layouts/dashboard/config';
 import { productApi } from 'src/services/product-api';
 import { toast } from 'react-hot-toast';
 import { usePermission } from 'src/hooks/use-permission';
+import { useSearchParams } from 'next/navigation';
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const queryClient = useQueryClient();
-
-  const key = ['products', { page, rowsPerPage }];
-
+  const params = useSearchParams();
+  const options = useMemo(() => {
+    const result = {};
+    params.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }, [params]);
+  const key = ['products', { page, rowsPerPage, ...options }];
   const { data } = useQuery({
     queryKey: key,
     queryFn: () => {
-      return productApi.getAll({ page, limit: rowsPerPage });
+      return productApi.getAll({ page, limit: rowsPerPage, ...options });
     },
   });
 
@@ -184,7 +192,7 @@ const Page = () => {
                 </div>
               )}
             </Stack>
-            <CustomersSearch />
+            <ProductsSearch />
             <ProductsTable
               allowEdit={isAll || isUpdate}
               allowDelete={isAll || isDelete}

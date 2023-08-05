@@ -7,7 +7,11 @@ import {
   CardContent,
   CardHeader,
   Divider,
+  FormControlLabel,
+  FormLabel,
   Unstable_Grid2 as Grid,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@mui/material';
 
@@ -17,6 +21,9 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from 'src/hooks/use-auth';
 import { useFormik } from 'formik';
 import { useMutation } from '@tanstack/react-query';
+import { phoneRegExp } from '../bank-account/bank-account-form';
+
+import * as moment from 'moment';
 
 export const AccountProfileDetails = () => {
   const { user, updateProfile } = useAuth();
@@ -38,12 +45,16 @@ export const AccountProfileDetails = () => {
       phone: user?.phone,
       dob: user?.dob,
       address: user?.address,
+      gender: user?.gender || 0,
     },
     validationSchema: Yup.object({
       firstName: Yup.string().max(255).required('First name is required'),
       lastName: Yup.string().max(255).required('Last name is required'),
-      phone: Yup.string().max(255),
-      dob: Yup.date().max(new Date(), 'Date of birth must be in the past'),
+      phone: Yup.string().matches(phoneRegExp, 'Phone number is not valid'),
+      dob: Yup.string().test('age', 'Age must be greater than 18', (value) => {
+        const age = moment().diff(value, 'years');
+        return age >= 18;
+      }),
       address: Yup.string().max(255),
     }),
     onSubmit: async (values, helpers) => {
@@ -133,6 +144,28 @@ export const AccountProfileDetails = () => {
                   onChange={formik.handleChange}
                   value={formik.values.address}
                 ></TextField>
+              </Grid>
+
+              <Grid xs={12} md={6}>
+                <FormLabel id="gender">Gender</FormLabel>
+                <RadioGroup
+                  aria-labelledby="gender"
+                  name="gender"
+                  value={formik.values.gender}
+                  onChange={formik.handleChange}
+                  row
+                >
+                  <FormControlLabel
+                    value={0}
+                    control={<Radio />}
+                    label="Female"
+                  />
+                  <FormControlLabel
+                    value={1}
+                    control={<Radio />}
+                    label="Male"
+                  />
+                </RadioGroup>
               </Grid>
             </Grid>
           </Box>

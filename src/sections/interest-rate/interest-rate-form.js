@@ -54,7 +54,7 @@ export const InterestRateForm = ({ item, onSubmit, type = 'ADD' }) => {
   const products = data?.data?.items || [];
   const terms = useMemo(() => {
     const items = termData?.data?.items.filter((term) => term.value !== 0);
-    return items;
+    return items || [];
   }, [termData]);
 
   const [isLoading, setIsLoading] = useState(false);

@@ -24,4 +24,9 @@ export const userApi = {
     const url = `${baseUrl}/${id}/unlock`;
     return axiosClient.patch(url);
   },
+
+  getOverview() {
+    const url = `${baseUrl}/overview`;
+    return axiosClient.get(url);
+  },
 };

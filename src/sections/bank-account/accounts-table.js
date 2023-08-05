@@ -13,9 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import {
-  CreditCardIcon,
   InformationCircleIcon,
-  LockOpenIcon,
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid';

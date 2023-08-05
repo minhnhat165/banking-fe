@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   FormControl,
   IconButton,
@@ -18,8 +19,11 @@ import { useId, useState } from 'react';
 
 import { FunnelIcon } from '@heroicons/react/24/solid';
 import MagnifyingGlassIcon from '@heroicons/react/24/solid/MagnifyingGlassIcon';
+import { USER } from 'src/constant/user';
+import { useRouter } from 'next/navigation';
+import { TRANSACTION } from 'src/constant/transaction';
 
-export const CustomersSearch = () => {
+export const TransactionsSearch = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -33,14 +37,45 @@ export const CustomersSearch = () => {
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
-  const [age, setAge] = useState('');
+  const [type, setType] = useState(-1);
 
   const handleChange = (event) => {
-    setAge(event.target.value);
+    setType(event.target.value);
   };
+
+  const router = useRouter();
+
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    const routeObject = {
+      pathname: router.pathname,
+    };
+    if (value) {
+      routeObject.query = { q: value };
+    } else {
+      routeObject.query = {};
+    }
+    router.push(routeObject);
+  };
+
+  const handleFilter = () => {
+    const routeObject = {
+      pathname: router.pathname,
+    };
+    if (type !== -1) {
+      routeObject.query = { type };
+    } else {
+      routeObject.query = {};
+    }
+    router.push(routeObject);
+
+    handleClose();
+  };
+
   return (
     <Card sx={{ p: 1, display: 'flex', gap: 1 }}>
       <OutlinedInput
+        onChange={handleSearch}
         defaultValue=""
         fullWidth
         placeholder="Search"
@@ -53,7 +88,7 @@ export const CustomersSearch = () => {
         }
         sx={{ maxWidth: 360 }}
       />
-      <Box>
+      <Box ml="auto">
         <IconButton
           aria-describedby={id}
           variant="contained"
@@ -83,22 +118,33 @@ export const CustomersSearch = () => {
         >
           <Stack spacing={1}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">Age</InputLabel>
+              <InputLabel id="status">Type</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
+                labelId="Type"
                 id="demo-simple-select"
-                value={age}
-                label="Age"
+                value={type}
+                label="type"
                 onChange={handleChange}
               >
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
+                <MenuItem value={-1}>All</MenuItem>
+                {Object.keys(TRANSACTION.TYPE).map((key) => (
+                  <MenuItem key={key} value={TRANSACTION.TYPE[key]}>
+                    {key}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
-            <TextField fullWidth label="Search" variant="outlined" />
+            {/* <TextField fullWidth label="Search" variant="outlined" />
             <DateFilter />
-            <NumberFilter />
+            <NumberFilter /> */}
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              onClick={handleFilter}
+            >
+              Apply
+            </Button>
           </Stack>
         </Box>
       </Popover>

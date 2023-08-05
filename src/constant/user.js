@@ -1,0 +1,24 @@
+export const USER = {
+  STATUS: {
+    INACTIVATED: 0,
+    ACTIVATED: 1,
+    LOCKED: 2,
+  },
+  TYPE: {
+    CHECKING: 0,
+    DEPOSIT: 1,
+  },
+
+  INTEREST_PAYMENT_METHOD: {
+    REGULAR: 1,
+    END_OF_TERM: 2,
+    PREPAID: 3,
+  },
+
+  ROLLOVER: {
+    FULL_SETTLEMENT: 1,
+    RENEWAL_PRINCIPAL: 2,
+    TRANSFER_TO_ACCOUNT: 3,
+    RENEWAL_FULL: 4,
+  },
+};

@@ -2,7 +2,7 @@ const { useRouter } = require('next/navigation');
 const { useAuth } = require('./use-auth');
 
 export const usePermission = (screenId) => {
-  const userPermissions = useAuth().user.permissions || [];
+  const userPermissions = useAuth()?.user?.permissions || [];
   const permissions = userPermissions.filter(
     (permission) => permission.screenId === screenId,
   );
@@ -12,6 +12,10 @@ export const usePermission = (screenId) => {
   const isHas = permissions && permissions.length > 0;
 
   if (!isHas) {
+    if (screenId === 1) {
+      router.push('/c');
+      return;
+    }
     router.push('/not-found');
   }
 

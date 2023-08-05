@@ -6,38 +6,20 @@ import {
   Box,
   Button,
   Container,
-  IconButton,
-  Menu,
-  MenuItem,
   Toolbar,
-  Tooltip,
   Typography,
 } from '@mui/material';
 
+import { AccountPopover } from '../dashboard/account-popover';
 import Link from 'next/link';
 import { Logo } from 'src/components/logo';
-
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+import { useAuth } from 'src/hooks/use-auth';
+import { usePopover } from 'src/hooks/use-popover';
 
 function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const user = useAuth().user;
+  const avatar = user?.avatar;
+  const accountPopover = usePopover();
 
   return (
     <AppBar color="inherit" position="fixed">
@@ -76,36 +58,34 @@ function ResponsiveAppBar() {
           </Typography>
 
           <Box sx={{ flexGrow: 0, ml: 'auto' }}>
-            <Button variant="contained" color="primary">
-              Login
-            </Button>
-            {/* <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip> */}
-            {/* <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu> */}
+            {!!user ? (
+              <>
+                <Avatar
+                  onClick={accountPopover.handleOpen}
+                  ref={accountPopover.anchorRef}
+                  sx={{
+                    cursor: 'pointer',
+                    height: 40,
+                    width: 40,
+                  }}
+                  src={avatar}
+                />
+                <AccountPopover
+                  anchorEl={accountPopover.anchorRef.current}
+                  open={accountPopover.open}
+                  onClose={accountPopover.handleClose}
+                />
+              </>
+            ) : (
+              <Button
+                component={Link}
+                href="/auth/login"
+                variant="contained"
+                color="primary"
+              >
+                Login
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>

@@ -9,16 +9,18 @@ import {
 
 import ArrowDownIcon from '@heroicons/react/24/solid/ArrowDownIcon';
 import ArrowUpIcon from '@heroicons/react/24/solid/ArrowUpIcon';
+import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/solid';
 import PropTypes from 'prop-types';
-import UsersIcon from '@heroicons/react/24/solid/UsersIcon';
-import { customerApi } from 'src/services/customer-api';
+import { transactionApi } from 'src/services/transaction-api';
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-export const OverviewTotalCustomers = ({ sx }) => {
+export const OverviewTotalTransactions = (props) => {
+  const { sx } = props;
+
   const { data } = useQuery({
-    queryKey: 'customers-overview',
-    queryFn: () => customerApi.getOverview(),
+    queryKey: 'transactions-overview',
+    queryFn: () => transactionApi.getOverview(),
   });
 
   const overview = useMemo(() => {
@@ -88,19 +90,19 @@ export const OverviewTotalCustomers = ({ sx }) => {
         >
           <Stack spacing={1}>
             <Typography color="text.secondary" variant="overline">
-              Total Customers
+              Transactions
             </Typography>
             <Typography variant="h4">{overview.total}</Typography>
           </Stack>
           <Avatar
             sx={{
-              backgroundColor: 'success.main',
+              backgroundColor: 'primary.main',
               height: 56,
               width: 56,
             }}
           >
             <SvgIcon>
-              <UsersIcon />
+              <ClipboardDocumentCheckIcon />
             </SvgIcon>
           </Avatar>
         </Stack>
@@ -112,7 +114,7 @@ export const OverviewTotalCustomers = ({ sx }) => {
   );
 };
 
-OverviewTotalCustomers.propTypes = {
+OverviewTotalTransactions.propTypes = {
   difference: PropTypes.number,
   positive: PropTypes.bool,
   value: PropTypes.string.isRequired,

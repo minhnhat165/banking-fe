@@ -62,10 +62,9 @@ export const TransactionsTable = (props) => {
     items = [],
     onPageChange = () => {},
     onRowsPerPageChange,
-    onSelectAll,
-    onSelectOne,
     page = 0,
     rowsPerPage = 0,
+    onShowDetails = () => {},
     selected = [],
   } = props;
 
@@ -126,7 +125,10 @@ export const TransactionsTable = (props) => {
                         justifyContent="center"
                         spacing={1}
                       >
-                        <IconButton size="small">
+                        <IconButton
+                          onClick={() => onShowDetails(item)}
+                          size="small"
+                        >
                           <SvgIcon fontSize="small">
                             <InformationCircleIcon />
                           </SvgIcon>

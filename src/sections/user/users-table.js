@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  InformationCircleIcon,
   LockClosedIcon,
   LockOpenIcon,
   PencilSquareIcon,
@@ -54,6 +55,7 @@ export const UsersTable = (props) => {
     onPermission = () => {},
     allowEdit = false,
     allowDelete = false,
+    onShowDetails = () => {},
   } = props;
 
   return (
@@ -145,6 +147,15 @@ export const UsersTable = (props) => {
                             </SvgIcon>
                           </IconButton>
                         )}
+
+                        <IconButton
+                          onClick={() => onShowDetails(item)}
+                          size="small"
+                        >
+                          <SvgIcon fontSize="small">
+                            <InformationCircleIcon />
+                          </SvgIcon>
+                        </IconButton>
                       </Stack>
                     </TableCell>
                   </TableRow>

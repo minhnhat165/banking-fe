@@ -6,4 +6,9 @@ export const transactionApi = {
     const url = `${baseUrl}`;
     return axiosClient.get(url, { params });
   },
+
+  getOverview() {
+    const url = `${baseUrl}/overview`;
+    return axiosClient.get(url);
+  },
 };
