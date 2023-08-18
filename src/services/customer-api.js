@@ -29,4 +29,9 @@ export const customerApi = {
     const url = `${baseUrl}/overview`;
     return axiosClient.get(url);
   },
+
+  login(data) {
+    const url = `${baseUrl}/login`;
+    return axiosClient.post(url, data);
+  },
 };

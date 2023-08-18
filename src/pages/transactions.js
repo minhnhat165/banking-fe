@@ -8,20 +8,20 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
-import { useQuery } from '@tanstack/react-query';
-import Head from 'next/head';
-import { usePermission } from 'src/hooks/use-permission';
-import { SCREENS } from 'src/layouts/dashboard/config';
-import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
+import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
+import Head from 'next/head';
+import { SCREENS } from 'src/layouts/dashboard/config';
 import { TransactionDetails } from 'src/sections/transaction/transaction-details';
+import { TransactionsSearch } from 'src/sections/transaction/transactions-search';
 import { TransactionsTable } from 'src/sections/transaction/transactions-table';
 import { transactionApi } from 'src/services/transaction-api';
-import { TransactionsSearch } from 'src/sections/transaction/transactions-search';
+import { usePermission } from 'src/hooks/use-permission';
 import { useSearchParams } from 'next/navigation';
 
 const Page = () => {
@@ -35,6 +35,9 @@ const Page = () => {
     });
     return result;
   }, [params]);
+
+  const key = ['transactions', { page, rowsPerPage, ...options }];
+  const queryClient = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ['transactions', { page, rowsPerPage, ...options }],

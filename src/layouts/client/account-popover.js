@@ -16,14 +16,13 @@ export const AccountPopover = (props) => {
   const { anchorEl, onClose, open } = props;
   const router = useRouter();
   const auth = useAuth();
-  const user = auth.user;
+  // get and parse user from localStorage
+  const user = JSON.parse(localStorage.getItem('user'));
 
   const handleSignOut = useCallback(() => {
     onClose?.();
-    router.push('/auth/login');
-    setTimeout(() => {
-      auth.signOut();
-    }, 1000);
+    localStorage.removeItem('user');
+    router.push('c/auth/login');
   }, [onClose, auth, router]);
 
   return (

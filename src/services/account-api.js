@@ -37,7 +37,11 @@ export const accountApi = {
   },
 
   settleClient(data) {
-    const url = `${baseUrl}/client/settle`;
+    const url = `${baseUrl}/settle`;
+    return axiosClient.patch(url, data);
+  },
+  deposit(data) {
+    const url = `${baseUrl}/deposit`;
     return axiosClient.patch(url, data);
   },
 
@@ -57,5 +61,9 @@ export const accountApi = {
   verifyOtp(data) {
     const url = `${baseUrl}/verify-otp`;
     return axiosClient.post(url, data);
+  },
+  findTransactions(id) {
+    const url = `${baseUrl}/${id}/transactions`;
+    return axiosClient.get(url);
   },
 };

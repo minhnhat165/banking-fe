@@ -11,34 +11,30 @@ import {
   CardHeader,
   Container,
   Divider,
-  FormControlLabel,
-  FormLabel,
   Modal,
-  Radio,
-  RadioGroup,
   Stack,
   SvgIcon,
   TextField,
   Typography,
 } from '@mui/material';
-import {
-  emailRegExp,
-  phoneRegExp,
-} from 'src/sections/bank-account/bank-account-form';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { AccountOtpForm } from 'src/sections/bank-account/account-otp-form';
+import { CheckIcon } from '@heroicons/react/24/solid';
 import Head from 'next/head';
 import { Layout } from 'src/layouts/client/layout';
+import Link from 'next/link';
 import { LoadingButton } from '@mui/lab';
 import { accountApi } from 'src/services/account-api';
 import { customerApi } from 'src/services/customer-api';
 import { interestRateApi } from 'src/services/interest-rate-api';
 import { paymentMethodApi } from 'src/services/payment-method-api';
+import { productApi } from 'src/services/product-api';
+import { rolloverPlanApi } from 'src/services/rollover-plan-api';
+import { set } from 'nprogress';
+import { useCustomer } from 'src/hooks/use-customer';
 import { useFormik } from 'formik';
-import { CheckIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
 
 const accountTypes = [
   {
@@ -63,11 +59,58 @@ export const style = {
 };
 
 const Page = () => {
+  const { user } = useCustomer(true);
+  const [selectedProductId, setSelectedProductId] = useState(-1);
+  const [selectedType, setSelectedType] = useState(0);
+  const [selectedTransferAccountId, setSelectedTransferAccountId] =
+    useState(-1);
+  const [selectedTermId, setSelectedTermId] = useState(-1);
+
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(-1);
+
+  const [selectedRolloverId, setSelectedRolloverId] = useState(-1);
   const [hasCustomer, setHasCustomer] = useState(false);
+  const { data: product } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => {
+      return productApi.getAll({ page: 0, limit: 100 });
+    },
+  });
+  const { data } = useQuery({
+    queryKey: ['accounts', user?.id],
+    queryFn: () =>
+      accountApi.getAll({
+        page: 0,
+        limit: 100,
+        customerId: user?.id,
+        type: 0,
+      }),
+  });
+
+  const accounts = useMemo(() => {
+    const items = data?.data?.items || [];
+    if (items.length > 0) setSelectedTransferAccountId(items[0].id);
+    return items;
+  }, [data]);
+  const products = useMemo(() => {
+    const items = product?.data?.items || [];
+    if (items.length > 0) setSelectedProductId(items[0].id);
+    return items;
+  }, [product]);
+
+  const { data: rolloverMethodData } = useQuery({
+    queryKey: ['rolloverPlans'],
+    queryFn: () => {
+      return rolloverPlanApi.getAll({ page: 0, limit: 100 });
+    },
+  });
+  const rolloverMethods = useMemo(() => {
+    const items = rolloverMethodData?.data?.items || [];
+    if (items.length > 0) setSelectedRolloverId(items[0].id);
+    return items;
+  }, [rolloverMethodData]);
 
   const [sourceAccount, setSourceAccount] = useState(null);
-
-  const [isChecked, setIsChecked] = useState(false);
 
   const [showOtpForm, setShowOtpForm] = useState(false);
 
@@ -96,9 +139,14 @@ const Page = () => {
   });
 
   const { data: interestRateData } = useQuery({
-    queryKey: ['interestRates'],
+    queryKey: ['interestRates', selectedProductId],
     queryFn: () => {
-      return interestRateApi.getAll({ page: 0, limit: 100, status: 1 });
+      return interestRateApi.getAll({
+        page: 0,
+        limit: 100,
+        status: 1,
+        productId: selectedProductId,
+      });
     },
   });
 
@@ -113,39 +161,25 @@ const Page = () => {
       (item) => item.term.value !== 0,
     );
     const terms = interestRatesFilter.map((item) => item.term);
+    if (terms.length > 0) setSelectedTermId(terms[0].id);
     return [...new Set(terms)];
   }, [interestRates]);
 
   const [isLoading, setIsLoading] = useState(false);
   const formik = useFormik({
     initialValues: {
-      customerId: null,
-      email: '',
-      firstName: '',
-      lastName: '',
-      pin: '',
-      dob: moment().format('YYYY-MM-DD'),
-      phone: '',
-      gender: 0,
-      address: '',
-
+      customerId: user?.id || 0,
       type: 0,
       principal: 0,
       paymentMethodId: 0,
-      interestRateId: interestRates[0]?.id || 0,
+      interestRateId: 0,
+      rolloverId: 0,
+      transferAccountId: 0,
+      termId: 0,
+      interestRate: 0,
+      productId: 0,
     },
     validationSchema: Yup.object({
-      email: Yup.string()
-        .matches(emailRegExp, 'Email is not valid')
-        .max(255)
-        .required('Email is required'),
-
-      firstName: Yup.string().max(255).required('First name is required'),
-      lastName: Yup.string().max(255).required('Last name is required'),
-      pin: Yup.string().min(12).max(12).required('Pin is required'),
-      dob: Yup.string().required('Date of birth is required'),
-      phone: Yup.string().matches(phoneRegExp, 'Phone number is not valid'),
-      address: Yup.string().max(255).required('Address is required'),
       principal: Yup.number()
         .min(500000, 'Minimum principal is 500,000 VND')
         .required('Principal is required'),
@@ -154,22 +188,7 @@ const Page = () => {
       setIsLoading(true);
       try {
         const changedValues = { ...values };
-        if (!changedValues?.customerId && !hasCustomer) {
-          const customerInfo = {
-            email: values.email,
-            firstName: values.firstName,
-            lastName: values.lastName,
-            pin: values.pin,
-            dob: values.dob,
-            phone: values.phone,
-            address: values.address,
-            gender: values.gender,
-          };
-          changedValues['customer'] = customerInfo;
-        }
-        if (selectedType === 0) {
-          changedValues.interestRateId = null;
-        }
+
         if (changedValues?.interestRateId && changedValues?.paymentMethodId)
           changedValues.paymentMethodId = parseInt(
             changedValues.paymentMethodId,
@@ -185,9 +204,20 @@ const Page = () => {
         } else {
           throw new Error('Source account is required');
         }
-
+        if (selectedType.toString() !== '0') {
+          const interestRate = interestRates.find(
+            (item) => item.id === selectedInterestRate.id,
+          );
+          changedValues.interestRate = interestRate.value;
+          changedValues.termId = selectedTermId;
+          changedValues.productId = selectedProductId;
+          changedValues.transferAccountId = selectedTransferAccountId;
+          changedValues.paymentMethodId = selectedPaymentMethodId;
+          changedValues.rolloverId = selectedRolloverId;
+        }
         await register(changedValues);
       } catch (err) {
+        console.log(err);
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: err.message });
         helpers.setSubmitting(false);
@@ -198,19 +228,15 @@ const Page = () => {
 
   const paymentMethods = useMemo(() => {
     const items = paymentMethodData?.data?.items || [];
-    formik.setFieldValue('paymentMethodId', items[0]?.id || 0);
+    if (items.length > 0) setSelectedPaymentMethodId(items[0].id);
     return items;
   }, [paymentMethodData]);
-
-  const [selectedType, setSelectedType] = useState(0);
-
-  const [selectedTermId, setSelectedTermId] = useState(-1);
 
   const selectedInterestRate = useMemo(() => {
     const selectedInterestRate = interestRates.find((item) => {
       return item.term.id === parseInt(selectedTermId);
     });
-    formik.setFieldValue('interestRateId', selectedInterestRate?.id || 0);
+
     return selectedInterestRate || null;
   }, [interestRates, selectedTermId]);
 
@@ -231,21 +257,6 @@ const Page = () => {
     mutationFn: customerApi.findByPin,
     onSuccess: (data) => {
       setHasCustomer(data?.data?.id ? true : false);
-      const customer = data?.data || {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        address: '',
-        dob: moment().format('YYYY-MM-DD'),
-        gender: 0,
-      };
-
-      formik.setValues({
-        ...formik.values,
-        customerId: customer?.id,
-        ...customer,
-      });
     },
   });
 
@@ -255,6 +266,7 @@ const Page = () => {
       formik.setFieldValue('pin', sourceAccount?.customer?.pin);
     }
   }, [sourceAccount]);
+  if (!user) return null;
 
   return (
     <>
@@ -321,7 +333,7 @@ const Page = () => {
                   <Button
                     size="large"
                     component={Link}
-                    href="/c/banking-info"
+                    href="/c/accounts"
                     color="primary"
                     variant="contained"
                   >
@@ -343,8 +355,6 @@ const Page = () => {
                   }}
                 >
                   <SourceForm
-                    isChecked={isChecked}
-                    setIsChecked={setIsChecked}
                     currentAccount={sourceAccount}
                     setCurrentAccount={setSourceAccount}
                   />
@@ -391,7 +401,24 @@ const Page = () => {
                         <>
                           <TextField
                             size="small"
+                            label="Product"
+                            value={selectedProductId}
+                            onChange={(e) => {
+                              setSelectedProductId(e.target.value);
+                            }}
+                            select
+                            SelectProps={{ native: true }}
+                          >
+                            {products.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.name}
+                              </option>
+                            ))}
+                          </TextField>
+                          <TextField
+                            size="small"
                             label="Term"
+                            name="termId"
                             value={selectedTermId}
                             onChange={(e) => {
                               setSelectedTermId(e.target.value);
@@ -405,21 +432,7 @@ const Page = () => {
                               </option>
                             ))}
                           </TextField>
-                          <TextField
-                            size="small"
-                            value={formik.values.paymentMethodId}
-                            label="Interest Payment Method"
-                            name="paymentMethodId"
-                            select
-                            SelectProps={{ native: true }}
-                            onChange={formik.handleChange}
-                          >
-                            {paymentMethods.map((item) => (
-                              <option key={item.id} value={item.id}>
-                                {item.name}
-                              </option>
-                            ))}
-                          </TextField>
+
                           <TextField
                             disabled
                             size="small"
@@ -437,6 +450,63 @@ const Page = () => {
                             type="date"
                             value={maturityDate}
                           />
+                          <TextField
+                            size="small"
+                            value={selectedPaymentMethodId}
+                            label="Interest Payment Method"
+                            name="paymentMethodId"
+                            select
+                            SelectProps={{ native: true }}
+                            onChange={(e) => {
+                              setSelectedPaymentMethodId(e.target.value);
+                            }}
+                          >
+                            {paymentMethods.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.name}
+                              </option>
+                            ))}
+                          </TextField>
+                          <TextField
+                            size="small"
+                            label="Rollover Method"
+                            name="rolloverId"
+                            value={selectedRolloverId}
+                            onChange={(e) => {
+                              setSelectedRolloverId(e.target.value);
+                            }}
+                            select
+                            SelectProps={{ native: true }}
+                          >
+                            {rolloverMethods.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.name}
+                              </option>
+                            ))}
+                          </TextField>
+                          {selectedRolloverId === '3' && (
+                            <TextField
+                              size="small"
+                              label="Transfer To Account"
+                              name="transferAccountId"
+                              select
+                              SelectProps={{ native: true }}
+                              value={selectedTransferAccountId}
+                              onChange={(e) => {
+                                setSelectedTransferAccountId(e.target.value);
+                              }}
+                            >
+                              {accounts.map((item, index) => (
+                                <option
+                                  defaultChecked={index === 0}
+                                  key={item.id}
+                                  value={item.id}
+                                >
+                                  {item.number}
+                                </option>
+                              ))}
+                            </TextField>
+                          )}
                         </>
                       )}
                       <TextField
@@ -455,142 +525,6 @@ const Page = () => {
                         onChange={formik.handleChange}
                         value={formik.values.principal}
                       />
-                      <Typography color="indigo" variant="subtitle1">
-                        Customer Information
-                      </Typography>
-                      <TextField
-                        error={!!(formik.touched.pin && formik.errors.pin)}
-                        helperText={formik.touched.pin && formik.errors.pin}
-                        size="small"
-                        label="Personal Identification Number"
-                        name="pin"
-                        type="number"
-                        onBlur={(e) => {
-                          if (e.target.value.length === 12)
-                            getCustomer(e.target.value);
-                          formik.handleBlur(e);
-                        }}
-                        onChange={formik.handleChange}
-                        value={formik.values.pin}
-                      />
-                      <TextField
-                        size="small"
-                        disabled={hasCustomer}
-                        error={!!(formik.touched.email && formik.errors.email)}
-                        fullWidth
-                        helperText={formik.touched.email && formik.errors.email}
-                        label="Email"
-                        name="email"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        value={formik.values.email}
-                      />
-                      <Stack
-                        spacing={1}
-                        direction={{ xs: 'column', sm: 'row' }}
-                      >
-                        <TextField
-                          disabled={hasCustomer}
-                          size="small"
-                          error={
-                            !!(
-                              formik.touched.firstName &&
-                              formik.errors.firstName
-                            )
-                          }
-                          fullWidth
-                          helperText={
-                            formik.touched.firstName && formik.errors.firstName
-                          }
-                          label="First Name"
-                          name="firstName"
-                          onBlur={formik.handleBlur}
-                          onChange={formik.handleChange}
-                          value={formik.values.firstName}
-                        />
-                        <TextField
-                          disabled={hasCustomer}
-                          size="small"
-                          error={
-                            !!(
-                              formik.touched.lastName && formik.errors.lastName
-                            )
-                          }
-                          fullWidth
-                          helperText={
-                            formik.touched.lastName && formik.errors.lastName
-                          }
-                          label="Last Name"
-                          name="lastName"
-                          onBlur={formik.handleBlur}
-                          onChange={formik.handleChange}
-                          value={formik.values.lastName}
-                        />
-                      </Stack>
-
-                      <TextField
-                        disabled={hasCustomer}
-                        error={!!(formik.touched.dob && formik.errors.dob)}
-                        helperText={formik.touched.dob && formik.errors.dob}
-                        size="small"
-                        label="Date of birth"
-                        name="dob"
-                        type="date"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        value={formik.values.dob}
-                      />
-                      <TextField
-                        disabled={hasCustomer}
-                        error={!!(formik.touched.phone && formik.errors.phone)}
-                        helperText={formik.touched.phone && formik.errors.phone}
-                        size="small"
-                        label="Phone"
-                        name="phone"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        value={formik.values.phone}
-                      />
-                      <TextField
-                        disabled={hasCustomer}
-                        size="small"
-                        error={
-                          !!(formik.touched.address && formik.errors.address)
-                        }
-                        fullWidth
-                        helperText={
-                          formik.touched.address && formik.errors.address
-                        }
-                        label="Address"
-                        name="address"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        value={formik.values.address}
-                      />
-                      <div>
-                        <FormLabel id="gender">Gender</FormLabel>
-                        <RadioGroup
-                          disabled={hasCustomer}
-                          aria-labelledby="gender"
-                          name="gender"
-                          value={formik.values.gender}
-                          onChange={formik.handleChange}
-                          row
-                        >
-                          <FormControlLabel
-                            disabled={hasCustomer}
-                            value={0}
-                            control={<Radio />}
-                            label="Female"
-                          />
-                          <FormControlLabel
-                            disabled={hasCustomer}
-                            value={1}
-                            control={<Radio />}
-                            label="Male"
-                          />
-                        </RadioGroup>
-                      </div>
                     </Box>
                   </form>
                 </Box>
@@ -601,7 +535,6 @@ const Page = () => {
                 <Divider />
                 <CardActions sx={{ justifyContent: 'flex-end' }}>
                   <LoadingButton
-                    disabled={!isChecked}
                     form="main-form"
                     loading={isLoading}
                     type="submit"
@@ -633,88 +566,62 @@ Page.getLayout = (page) => <Layout>{page}</Layout>;
 
 export default Page;
 
-const SourceForm = ({
-  currentAccount,
-  setCurrentAccount,
-  isChecked,
-  setIsChecked,
-}) => {
+const SourceForm = ({ currentAccount, setCurrentAccount }) => {
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: accountApi.check,
   });
-
-  const formik = useFormik({
-    initialValues: {
-      number: '',
-      pin: '',
-      newPin: '',
-      confirmPin: '',
-    },
-    validationSchema: Yup.object({
-      number: Yup.string()
-        .required('Required')
-        .min(16, 'Invalid account number')
-        .max(16, 'Invalid account number'),
-      pin: Yup.string()
-        .required('Required')
-        .min(6, 'Invalid PIN')
-        .max(6, 'Invalid PIN'),
-    }),
-    onSubmit: async (values, helpers) => {
-      try {
-        const res = await mutateAsync(values);
-        setIsChecked(true);
-        setCurrentAccount({
-          ...res.data,
-          pin: values.pin,
-        });
-      } catch (err) {
-        setCurrentAccount(null);
-        helpers.setStatus({ success: false });
-        helpers.setErrors({ submit: err.message });
-        helpers.setSubmitting(false);
-      }
-    },
+  const { user } = useCustomer();
+  const { data } = useQuery({
+    queryKey: ['accounts', user?.id],
+    queryFn: () =>
+      accountApi.getAll({
+        page: 0,
+        limit: 100,
+        customerId: user?.id,
+        type: 0,
+      }),
   });
+
+  const accounts = useMemo(() => {
+    const items = data?.data?.items || [];
+    return items;
+  }, [data]);
 
   return (
     <>
-      <form id="source-form" autoComplete="off" onSubmit={formik.handleSubmit}>
+      <form id="source-form" autoComplete="off">
         <Stack spacing={1}>
           <Typography color="indigo" variant="subtitle1">
             Source of Funds
           </Typography>
-          {formik.errors.submit && (
-            <Typography color="error" sx={{ mb: 3 }} variant="body2">
-              {formik.errors.submit}
-            </Typography>
-          )}
+
           <TextField
-            disabled={isChecked}
             fullWidth
             size="small"
-            error={!!(formik.touched.number && formik.errors.number)}
-            helperText={formik.touched.number && formik.errors.number}
             label="Account number"
             name="number"
-            type="number"
-            onChange={formik.handleChange}
-            value={formik.values.number}
-          />
-          {!isChecked && (
-            <TextField
-              fullWidth
-              size="small"
-              error={!!(formik.touched.pin && formik.errors.pin)}
-              helperText={formik.touched.pin && formik.errors.pin}
-              label="PIN"
-              name="pin"
-              type="password"
-              onChange={formik.handleChange}
-              value={formik.values.pin}
-            />
-          )}
-          {currentAccount?.id && isChecked && (
+            select
+            value={currentAccount?.id}
+            onChange={(e) => {
+              const account = accounts.find(
+                (item) => item.id.toString() === e.target.value,
+              );
+              setCurrentAccount(account);
+            }}
+            SelectProps={{ native: true }}
+          >
+            {accounts.map((item, index) => (
+              <option
+                defaultChecked={index === 0}
+                key={item.id}
+                value={item.id}
+              >
+                {item.number}
+              </option>
+            ))}
+          </TextField>
+
+          {currentAccount?.id && (
             <Typography align="right" variant="subtitle1">
               Balance:{' '}
               {new Intl.NumberFormat('vi-VN', {
@@ -722,37 +629,6 @@ const SourceForm = ({
                 currency: 'VND',
               }).format(currentAccount?.balance || 0)}
             </Typography>
-          )}
-          {!isChecked && (
-            <LoadingButton
-              form="source-form"
-              color="success"
-              fullWidth
-              loading={isLoading}
-              type="submit"
-              variant="contained"
-              sx={{
-                minWidth: 100,
-              }}
-            >
-              Check
-            </LoadingButton>
-          )}
-          {isChecked && (
-            <LoadingButton
-              form="source-form"
-              color="success"
-              fullWidth
-              onClick={() => {
-                setIsChecked(false);
-              }}
-              variant="contained"
-              sx={{
-                minWidth: 100,
-              }}
-            >
-              Change
-            </LoadingButton>
           )}
         </Stack>
       </form>

@@ -10,14 +10,14 @@ import {
   Typography,
 } from '@mui/material';
 
-import { AccountPopover } from '../dashboard/account-popover';
+import { AccountPopover } from './account-popover';
 import Link from 'next/link';
 import { Logo } from 'src/components/logo';
 import { useAuth } from 'src/hooks/use-auth';
 import { usePopover } from 'src/hooks/use-popover';
 
 function ResponsiveAppBar() {
-  const user = useAuth().user;
+  const user = localStorage.getItem('user');
   const avatar = user?.avatar;
   const accountPopover = usePopover();
 
@@ -79,7 +79,7 @@ function ResponsiveAppBar() {
             ) : (
               <Button
                 component={Link}
-                href="/auth/login"
+                href="/c/auth/login"
                 variant="contained"
                 color="primary"
               >

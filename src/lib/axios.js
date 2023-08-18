@@ -1,9 +1,9 @@
-import axios from "axios";
+import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: "/api",
+  baseURL: '/api',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -18,8 +18,9 @@ axiosClient.interceptors.response.use(
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     // 401, 403, 500
+
     return Promise.reject(error.response?.data); // should be error response body
-  }
+  },
 );
 
 export default axiosClient;

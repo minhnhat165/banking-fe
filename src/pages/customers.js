@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
+import CustomerAccounts from 'src/sections/customer/customer-accounts';
 import { CustomerForm } from 'src/sections/customer/customer-form';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { CustomersTable } from 'src/sections/customer/customers-table';
@@ -63,6 +64,14 @@ const Page = () => {
   };
   const handleCloseEdit = () => {
     setOpenEdit(false);
+  };
+
+  const [openAccount, setOpenAccount] = useState(false);
+  const handleOpenAccount = () => {
+    setOpenAccount(true);
+  };
+  const handleCloseAccount = () => {
+    setOpenAccount(false);
   };
 
   // create a new product
@@ -199,6 +208,10 @@ const Page = () => {
                 setSelected(item);
                 handleOpenEdit();
               }}
+              onShowAccount={(item) => {
+                setSelected(item);
+                handleOpenAccount();
+              }}
             />
           </Stack>
         </Container>
@@ -217,6 +230,11 @@ const Page = () => {
       <Modal open={openEdit} onClose={handleCloseEdit}>
         <Box>
           <CustomerForm type="EDIT" item={selected} onSubmit={update} />
+        </Box>
+      </Modal>
+      <Modal open={openAccount} onClose={handleCloseAccount}>
+        <Box>
+          <CustomerAccounts customerId={selected?._id} />
         </Box>
       </Modal>
     </>

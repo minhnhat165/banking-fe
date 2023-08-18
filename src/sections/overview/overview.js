@@ -25,7 +25,11 @@ export const OverviewPanel = ({
       }}
     >
       <Card sx={sx}>
-        <CardContent>
+        <CardContent
+          sx={{
+            minHeight: 200,
+          }}
+        >
           <Stack
             alignItems="flex-start"
             direction="row"

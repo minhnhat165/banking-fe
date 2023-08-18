@@ -49,20 +49,20 @@ export const ProductsTable = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((product) => {
-                const isSelected = selected.includes(product.id);
+              {items.map((item) => {
+                const isSelected = selected.includes(item.id);
                 return (
-                  <TableRow hover key={product.id} selected={isSelected}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.description}</TableCell>
-                    <TableCell>{product.createdDate}</TableCell>
+                  <TableRow hover key={item.id} selected={isSelected}>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.description}</TableCell>
+                    <TableCell>{item.createdDate}</TableCell>
                     <TableCell>
                       <Stack alignItems="center" direction="row" spacing={2}>
-                        <Avatar src={product.user.avatar}>
-                          {getInitials(product.user.firstName)}
+                        <Avatar src={item.user.avatar}>
+                          {getInitials(item.user.firstName)}
                         </Avatar>
                         <Typography variant="subtitle2">
-                          {product.user.lastName + ' ' + product.user.firstName}
+                          {item.user.lastName + ' ' + item.user.firstName}
                         </Typography>
                       </Stack>
                     </TableCell>

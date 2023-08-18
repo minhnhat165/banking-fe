@@ -12,7 +12,11 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import {
+  CreditCardIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/24/solid';
 
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -42,6 +46,7 @@ export const CustomersTable = (props) => {
     onEdit = () => {},
     allowEdit = false,
     allowDelete = false,
+    onShowAccount,
   } = props;
 
   return (
@@ -94,6 +99,7 @@ export const CustomersTable = (props) => {
                             </SvgIcon>
                           </IconButton>
                         )}
+
                         {allowDelete && (
                           <IconButton
                             onClick={() => onDelete(item.id)}
@@ -104,6 +110,14 @@ export const CustomersTable = (props) => {
                             </SvgIcon>
                           </IconButton>
                         )}
+                        <IconButton
+                          onClick={() => onShowAccount(item)}
+                          size="small"
+                        >
+                          <SvgIcon fontSize="small">
+                            <CreditCardIcon />
+                          </SvgIcon>
+                        </IconButton>
                       </Stack>
                     </TableCell>
                   </TableRow>

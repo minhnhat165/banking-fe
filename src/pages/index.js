@@ -12,13 +12,57 @@ import { OverviewTotalTransactions } from 'src/sections/overview/overview-total-
 import { OverviewTraffic } from 'src/sections/overview/overview-traffic';
 import { OverviewUser } from 'src/sections/overview/overview-user';
 import { SCREENS } from 'src/layouts/dashboard/config';
+import { TRANSACTION } from 'src/constant/transaction';
+import { transactionApi } from 'src/services/transaction-api';
+import { useMemo } from 'react';
 import { usePermission } from 'src/hooks/use-permission';
+import { useQuery } from '@tanstack/react-query';
 
 const Page = () => {
   const { isHas } = usePermission(SCREENS.OVERVIEW) || {};
+  const { data } = useQuery({
+    queryKey: ['overview', 'budget'],
+    queryFn: () =>
+      transactionApi.getAll({
+        page: 0,
+        limit: 999999999999,
+        type: TRANSACTION.TYPE.DEPOSIT,
+      }),
+  });
+
+  const dataCharts = useMemo(() => {
+    if (!data?.data?.items) {
+      return [];
+    }
+    const result = [];
+    const years =
+      data?.data?.items?.map((item) => {
+        return new Date(item.transactionDate).getFullYear();
+      }) || [];
+    const yearsUnique = [...new Set(years)];
+    yearsUnique.forEach((year) => {
+      const monthsValue = [];
+      for (let i = 0; i < 12; i++) {
+        monthsValue.push(0);
+      }
+      data?.data?.items?.forEach((item) => {
+        const month = new Date(item.transactionDate).getMonth();
+        if (new Date(item.transactionDate).getFullYear() === year) {
+          monthsValue[month] += item.amount / 1000;
+        }
+      });
+      result.push({
+        name: year,
+        data: monthsValue,
+      });
+    });
+    return result;
+  }, [data]);
+
   if (!isHas) {
     return null;
   }
+
   return (
     <>
       <Head>
@@ -68,19 +112,7 @@ const Page = () => {
             </Grid>
 
             <Grid xs={12} lg={12}>
-              <OverviewSales
-                chartSeries={[
-                  {
-                    name: 'This year',
-                    data: [18, 16, 5, 8, 3, 14, 14, 16, 17, 19, 18, 20],
-                  },
-                  {
-                    name: 'Last year',
-                    data: [12, 11, 4, 6, 2, 9, 9, 10, 11, 12, 13, 13],
-                  },
-                ]}
-                sx={{ height: '100%' }}
-              />
+              <OverviewSales chartSeries={dataCharts} sx={{ height: '100%' }} />
             </Grid>
           </Grid>
         </Container>

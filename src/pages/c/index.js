@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   MagnifyingGlassIcon,
   ReceiptPercentIcon,
+  UserIcon,
 } from '@heroicons/react/24/solid';
 
 import Head from 'next/head';
@@ -25,12 +26,16 @@ const Page = () => (
     >
       <Container
         sx={{
+          height: '100%',
           background: 'transparent',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 800,
         }}
-        maxWidth="xl"
       >
         <Grid container spacing={2}>
-          <Grid xs={12} sm={6} lg={3}>
+          <Grid xs={12} sm={6} lg={6}>
             <OverviewPanel
               href="c/banking-register"
               title="Register"
@@ -39,7 +44,7 @@ const Page = () => (
               sx={{ height: '100%', cursor: 'pointer' }}
             />
           </Grid>
-          <Grid xs={12} sm={6} lg={3}>
+          <Grid xs={12} sm={6} lg={6}>
             <OverviewPanel
               href="c/interest-rate"
               title="Interest Rate"
@@ -49,20 +54,20 @@ const Page = () => (
               color="primary.main"
             />
           </Grid>
-          <Grid xs={12} sm={6} lg={3}>
+          <Grid xs={12} sm={6} lg={6}>
             <OverviewPanel
               href="c/banking-activate"
-              title="Active"
-              subtitle="Banking account"
-              icon={<CheckBadgeIcon />}
+              title="Settings"
+              subtitle="Profile"
+              icon={<UserIcon />}
               sx={{ height: '100%', cursor: 'pointer' }}
               color="info.main"
             />
           </Grid>
-          <Grid xs={12} sm={6} lg={3}>
+          <Grid xs={12} sm={6} lg={6}>
             <OverviewPanel
-              title="Access"
-              href="c/banking-info"
+              title="Accounts management"
+              href="c/accounts"
               subtitle="Banking account"
               icon={<MagnifyingGlassIcon />}
               sx={{ height: '100%', cursor: 'pointer' }}

@@ -38,8 +38,8 @@ const types = {
   ADD: 'Add',
   EDIT: 'Edit',
 };
-const phoneRegExp = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-const emailRegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const phoneRegExp = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+export const emailRegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export const UserForm = ({ item, onSubmit, type = 'ADD' }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -92,6 +92,7 @@ export const UserForm = ({ item, onSubmit, type = 'ADD' }) => {
           changedValues.pin = changedValues.pin.toString();
         }
 
+        changedValues.status = 1;
         await onSubmit(changedValues);
       } catch (err) {
         helpers.setStatus({ success: false });

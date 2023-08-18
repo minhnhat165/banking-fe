@@ -11,8 +11,11 @@ import {
   Typography,
 } from '@mui/material';
 
-import { SeverityPill } from 'src/components/severity-pill';
 import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/solid';
+import { SeverityPill } from 'src/components/severity-pill';
+import { accountApi } from 'src/services/account-api';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 export const style = {
   position: 'absolute',
@@ -61,9 +64,28 @@ const typeMap = {
     color: 'error',
     text: 'SETTLEMENT',
   },
+  6: {
+    color: 'secondary',
+    text: 'RENEWAL',
+  },
 };
 
 export const TransactionDetails = ({ item = {}, style: _style }) => {
+  const { receivers, senders } = useMemo(() => {
+    const receivers = [];
+    const senders = [];
+    item.transactionDetails.forEach((detail) => {
+      if (detail.isIncrease) {
+        receivers.push(detail);
+      } else {
+        senders.push(detail);
+      }
+    });
+    return {
+      receivers,
+      senders,
+    };
+  }, [item]);
   return (
     <Card
       style={{
@@ -106,10 +128,6 @@ export const TransactionDetails = ({ item = {}, style: _style }) => {
             </Avatar>
           </Box>
           <Box display="flex" justifyContent="space-between">
-            <strong>Account number</strong>
-            {item?.account.number}
-          </Box>
-          <Box display="flex" justifyContent="space-between">
             <strong>Type</strong>
             <SeverityPill color={typeMap[item.type].color}>
               {typeMap[item.type].text}
@@ -123,15 +141,9 @@ export const TransactionDetails = ({ item = {}, style: _style }) => {
           </Box>
           <Box display="flex" justifyContent="space-between">
             <strong>Description</strong>
-            {item?.description}
+            <Typography textAlign="right">{item?.description}</Typography>
           </Box>
 
-          {item.bnfAccountId && (
-            <Box display="flex" justifyContent="space-between">
-              <strong>Beneficiary account number</strong>{' '}
-              {item.bnfAccount.number}
-            </Box>
-          )}
           <Divider />
           <Box display="flex" justifyContent="space-between">
             <strong>Transaction date</strong>{' '}
@@ -141,15 +153,6 @@ export const TransactionDetails = ({ item = {}, style: _style }) => {
           </Box>
 
           <Box display="flex" justifyContent="space-between">
-            <strong>Debit</strong>
-            <Typography color="red">
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              }).format(item.drcrInd)}
-            </Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between">
             <strong>Amount</strong>
             <Typography color="yellowgreen">
               {new Intl.NumberFormat('vi-VN', {
@@ -158,19 +161,70 @@ export const TransactionDetails = ({ item = {}, style: _style }) => {
               }).format(item.amount)}
             </Typography>
           </Box>
+          {senders.length > 0 && (
+            <>
+              <Divider />
+              <Box display="flex" justifyContent="center">
+                <strong>Senders</strong>
+              </Box>
 
-          <Box display="flex" justifyContent="space-between">
-            <strong>Balance</strong>
-            <Typography color="green">
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              }).format(item.balance)}
-            </Typography>
-          </Box>
+              {senders.map((senders) => (
+                <AccountDetails key={senders.id} item={senders} />
+              ))}
+            </>
+          )}
+          {receivers.length > 0 && (
+            <>
+              <Divider />
+              <Box display="flex" justifyContent="center">
+                <strong>Receivers</strong>
+              </Box>
+
+              {receivers.map((receiver) => (
+                <AccountDetails key={receiver.id} item={receiver} />
+              ))}
+            </>
+          )}
         </CardContent>
       </Card>
     </Card>
+  );
+};
+
+const AccountDetails = ({ item }) => {
+  const { data } = useQuery({
+    queryKey: ['account', item.accountId],
+    queryFn: () => accountApi.getAll({ id: item.accountId }),
+  });
+  const account = data?.data?.items[0] || {};
+
+  return (
+    <>
+      <Box display="flex" justifyContent="space-between">
+        <strong>Account Number</strong>
+        <Typography>{account?.number}</Typography>
+      </Box>
+      <Box display="flex" justifyContent="space-between">
+        <strong>Balance</strong>
+        <Typography color="green">
+          {new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(item.balance)}
+        </Typography>
+      </Box>
+      {item?.fee > 0 && (
+        <Box display="flex" justifyContent="space-between">
+          <strong>Fee</strong>
+          <Typography color="red">
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(item.fee)}
+          </Typography>
+        </Box>
+      )}
+    </>
   );
 };
 

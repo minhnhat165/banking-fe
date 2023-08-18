@@ -15,6 +15,7 @@ import {
 import {
   InformationCircleIcon,
   PencilSquareIcon,
+  PlusCircleIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid';
 
@@ -69,6 +70,7 @@ export const AccountsTable = (props) => {
     onShowDetails = () => {},
     allowEdit = false,
     allowDelete = false,
+    onDeposit = () => {},
   } = props;
 
   return (
@@ -157,6 +159,22 @@ export const AccountsTable = (props) => {
                             <InformationCircleIcon />
                           </SvgIcon>
                         </IconButton>
+                        {allowEdit && (
+                          <IconButton
+                            onClick={() => {
+                              if (item.status !== 1) {
+                                toast.error('Account is not active');
+                                return;
+                              }
+                              onDeposit(item);
+                            }}
+                            size="small"
+                          >
+                            <SvgIcon fontSize="small">
+                              <PlusCircleIcon />
+                            </SvgIcon>
+                          </IconButton>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

@@ -20,6 +20,7 @@ import {
 import PropTypes from 'prop-types';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
+import { toast } from 'react-hot-toast';
 
 const statusMap = {
   0: {
@@ -92,7 +93,18 @@ export const InterestRatesTable = (props) => {
                         spacing={1}
                       >
                         {allowEdit && (
-                          <IconButton onClick={() => onEdit(item)} size="small">
+                          <IconButton
+                            onClick={() => {
+                              if (item.status !== 0) {
+                                toast.error(
+                                  'Only inactive interest rate can be edited',
+                                );
+                                return;
+                              }
+                              onEdit(item);
+                            }}
+                            size="small"
+                          >
                             <SvgIcon fontSize="small">
                               <PencilSquareIcon />
                             </SvgIcon>
@@ -100,7 +112,15 @@ export const InterestRatesTable = (props) => {
                         )}
                         {allowDelete && (
                           <IconButton
-                            onClick={() => onDelete(item.id)}
+                            onClick={() => {
+                              if (item.status !== 0) {
+                                toast.error(
+                                  'Only inactive interest rate can be deleted',
+                                );
+                                return;
+                              }
+                              onDelete(item.id);
+                            }}
                             size="small"
                           >
                             <SvgIcon fontSize="small">

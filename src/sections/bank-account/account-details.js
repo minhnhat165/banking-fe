@@ -15,6 +15,7 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
+  Modal,
   Select,
   SvgIcon,
   TextField,
@@ -24,6 +25,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ACCOUNT } from 'src/constant/account';
+import AccountTransactions from './account-transactions';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import { LoadingButton } from '@mui/lab';
 import { SeverityPill } from 'src/components/severity-pill';
@@ -106,6 +108,8 @@ export const AccountDetails = ({
     setIsShowSettle(!isShowSettle);
   };
 
+  const [isShowTransaction, setIsShowTransaction] = useState(false);
+
   return (
     <Card
       style={{
@@ -152,25 +156,32 @@ export const AccountDetails = ({
           {item.type === ACCOUNT.TYPE.DEPOSIT && (
             <Box display="flex" justifyContent="space-between">
               <strong>Interest rate</strong>
-              {item?.interestRate?.value}%
+              {item?.interestRate}%
             </Box>
           )}
           <Divider />
 
           <Box display="flex" justifyContent="space-between">
-            <strong>Activated date</strong>{' '}
-            {item?.activatedDate
-              ? moment(item.activatedDate).format('DD/MM/YYYY')
+            <strong>Started date</strong>{' '}
+            {item?.startedDate
+              ? moment(item.startedDate).format('DD/MM/YYYY')
               : 'N/A'}
           </Box>
 
           {item.type === ACCOUNT.TYPE.DEPOSIT && (
-            <Box display="flex" justifyContent="space-between">
-              <strong>Maturity date</strong>{' '}
-              {item.type === 1
-                ? maturityDate.format('DD/MM/YYYY')
-                : startDate.format('DD/MM/YYYY')}
-            </Box>
+            <>
+              <Box display="flex" justifyContent="space-between">
+                <strong>Maturity date</strong>{' '}
+                {moment(item.startedDate)
+                  .add(item.term.value, 'months')
+                  .format('DD/MM/YYYY')}
+              </Box>
+              {
+                <Box display="flex" justifyContent="space-between">
+                  <strong>Term</strong> {item.term.value} months
+                </Box>
+              }
+            </>
           )}
 
           {item.status === ACCOUNT.STATUS.CLOSED && (
@@ -252,7 +263,7 @@ export const AccountDetails = ({
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <strong>Gender</strong>
-                {item.customer.gender === 0 ? 'Female' : 'Male'}
+                {item?.customer?.gender === 0 ? 'Female' : 'Male'}
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <strong>Address</strong>
@@ -265,18 +276,18 @@ export const AccountDetails = ({
             </AccordionDetails>
           </Accordion>
         </CardContent>
-        {(item.status === ACCOUNT.STATUS.ACTIVATED ||
-          item.status === ACCOUNT.STATUS.MATURITY) &&
-          allowEdit &&
-          parseInt(item.type) === ACCOUNT.TYPE.DEPOSIT && (
-            <CardActionArea
-              sx={{
-                mt: 'auto',
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <CardActions>
+        <CardActionArea
+          sx={{
+            mt: 'auto',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <CardActions>
+            {(item.status === ACCOUNT.STATUS.ACTIVATED ||
+              item.status === ACCOUNT.STATUS.MATURITY) &&
+              allowEdit &&
+              parseInt(item.type) === ACCOUNT.TYPE.DEPOSIT && (
                 <LoadingButton
                   onClick={toggleSettle}
                   type=""
@@ -284,9 +295,19 @@ export const AccountDetails = ({
                 >
                   {isShowSettle ? 'Close Settlement' : 'Settle Account'}
                 </LoadingButton>
-              </CardActions>
-            </CardActionArea>
-          )}
+              )}
+            <LoadingButton
+              color="secondary"
+              onClick={() => {
+                setIsShowTransaction(true);
+              }}
+              type=""
+              variant="contained"
+            >
+              Show Transaction
+            </LoadingButton>
+          </CardActions>
+        </CardActionArea>
       </Card>
       {isShowSettle && (
         <Settlement
@@ -298,6 +319,16 @@ export const AccountDetails = ({
           }}
         />
       )}
+      <Modal
+        open={isShowTransaction}
+        onClose={() => {
+          setIsShowTransaction(false);
+        }}
+      >
+        <Box>
+          <AccountTransactions accountId={item.id} />
+        </Box>
+      </Modal>
     </Card>
   );
 };
@@ -342,41 +373,29 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
 
   const calResult = useMemo(() => {
     const accountClone = { ...account };
-    const totalTime = moment().diff(moment(account.activatedDate), 'M');
-    let interestRateApplied = accountClone?.interestRate?.value;
+    const totalTime = moment().diff(moment(account.startedDate), 'days');
+    let interestRateApplied = accountClone?.interestRate;
     let interest = 0;
     let total = 0;
     let debit = 0;
     const isMaturity = accountClone.status === ACCOUNT.STATUS.MATURITY;
     if (!isMaturity) {
       interestRateApplied = 0.1;
+      interest = calEndOfTermInterest({
+        balance: accountClone.principal,
+        days: totalTime,
+        interestRate: interestRateApplied,
+      });
+      total = accountClone.principal + interest;
       switch (accountClone.paymentMethodId) {
         case ACCOUNT.INTEREST_PAYMENT_METHOD.PREPAID:
-          debit = accountClone.balance - accountClone.principal;
-          total = accountClone.principal;
+          debit = accountClone.balance - accountClone.principal - interest;
           break;
         case ACCOUNT.INTEREST_PAYMENT_METHOD.REGULAR:
-          let newBalance = accountClone.principal;
-
-          for (let i = 0; i < totalTime; i++) {
-            console.log(newBalance * (interestRateApplied / 100));
-            newBalance += newBalance * (interestRateApplied / 100);
+          const firstInterest = accountClone.balance - accountClone.principal;
+          if (firstInterest > interest) {
+            debit = firstInterest - interest;
           }
-
-          if (accountClone.balance < newBalance) {
-            newBalance = accountClone.balance;
-          }
-          debit = accountClone.balance - newBalance;
-          total = newBalance;
-          interest = newBalance - accountClone.principal;
-          break;
-        case ACCOUNT.INTEREST_PAYMENT_METHOD.END_OF_TERM:
-          interest = calEndOfTermInterest({
-            balance: accountClone.principal,
-            months: totalTime,
-            interestRate: interestRateApplied,
-          });
-          total = accountClone.principal + interest;
           break;
         default:
           break;
@@ -412,34 +431,30 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
         selectedRolloverPlan.toString() ===
         ACCOUNT.ROLLOVER.TRANSFER_TO_ACCOUNT.toString()
       ) {
-        const accountNumber = accountNumberRef.current.value;
-        if (!accountNumber) {
-          setErrorMessage('Please enter account number');
-          return;
-        }
-        if (accountNumber.length !== 16) {
-          setErrorMessage('Account number must be 16 digits');
-          return;
-        }
-
-        if (accountNumber === account.number) {
-          setErrorMessage('Account number must be different from current');
-          return;
-        }
-
-        const res = await accountApi.findByNumber(accountNumber);
-        values['bnfAccountId'] = res.data.id;
-      }
-      if (isClient) {
-        values['pin'] = account.pin;
+        const accountId = accountNumberRef.current.value;
+        values['transferAccountId'] = parseInt(accountId);
       }
       await settleAccount(values);
     } catch (error) {
+      console.log(error);
       setErrorMessage(
         error?.statusCode === 404 ? 'Account not found' : error?.message,
       );
     }
   };
+  const { data: accountsData } = useQuery({
+    queryFn: () =>
+      accountApi.getAll({
+        page: 0,
+        limit: 100,
+        customerId: account?.customerId,
+        type: ACCOUNT.TYPE.CHECKING,
+      }),
+  });
+
+  const accounts = useMemo(() => {
+    return accountsData?.data?.items || [];
+  }, [accountsData?.data?.items]);
 
   return (
     <Card
@@ -473,7 +488,7 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
         )}
         <Box display="flex" justifyContent="space-between">
           <strong>Total time</strong>
-          {calResult.totalTime} months
+          {calResult.totalTime} days
         </Box>
         <Box display="flex" justifyContent="space-between">
           <strong>Interest rate</strong>
@@ -532,13 +547,22 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
                 <>
                   <TextField
                     inputRef={accountNumberRef}
-                    required
-                    label="Account number"
-                    type="number"
-                  />
-                  {errorMessage && (
-                    <Typography color="red">{errorMessage}</Typography>
-                  )}
+                    size="small"
+                    label="Transfer To Account"
+                    name="transferToAccountId"
+                    select
+                    SelectProps={{ native: true }}
+                  >
+                    {accounts.map((item, index) => (
+                      <option
+                        defaultChecked={index === 0}
+                        key={item.id}
+                        value={item.id}
+                      >
+                        {item.number}
+                      </option>
+                    ))}
+                  </TextField>
                 </>
               )}
             </Box>
@@ -570,7 +594,7 @@ const Settlement = ({ account, onConfirm, queryKey }) => {
 // Prop Types for the AccountDetails component
 AccountDetails.propTypes = {};
 
-const calEndOfTermInterest = ({ interestRate, balance, months }) => {
-  const interest = (balance * interestRate * months) / (12 * 100);
+const calEndOfTermInterest = ({ interestRate, balance, days }) => {
+  const interest = (((balance * interestRate) / 100) * days) / 365;
   return interest;
 };

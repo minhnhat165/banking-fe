@@ -20,9 +20,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { LoadingButton } from '@mui/lab';
+import { accountApi } from 'src/services/account-api';
 import { customerApi } from 'src/services/customer-api';
 import { interestRateApi } from 'src/services/interest-rate-api';
 import { paymentMethodApi } from 'src/services/payment-method-api';
+import { productApi } from 'src/services/product-api';
+import { rolloverPlanApi } from 'src/services/rollover-plan-api';
 import { useFormik } from 'formik';
 
 export const phoneRegExp = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
@@ -61,6 +64,16 @@ const types = {
 
 export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
   const [hasCustomer, setHasCustomer] = useState(item?.customer ? true : false);
+  const { data: product } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => {
+      return productApi.getAll({ page: 0, limit: 100 });
+    },
+  });
+
+  const [selectedProductId, setSelectedProductId] = useState(
+    item?.productId || -1,
+  );
 
   const { data: paymentMethodData } = useQuery({
     queryKey: ['paymentMethods'],
@@ -69,23 +82,48 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
     },
   });
 
-  const { data: interestRateData } = useQuery({
-    queryKey: ['interestRates'],
+  const { data: rolloverMethodData } = useQuery({
+    queryKey: ['rolloverPlans'],
     queryFn: () => {
-      return interestRateApi.getAll({ page: 0, limit: 100, status: 1 });
+      return rolloverPlanApi.getAll({ page: 0, limit: 100 });
     },
   });
+
+  const rolloverMethods = useMemo(() => {
+    const items = rolloverMethodData?.data?.items || [];
+    return items;
+  }, [rolloverMethodData]);
+
+  const { data: interestRateData } = useQuery({
+    queryKey: ['interestRates', selectedProductId],
+    queryFn: () => {
+      return interestRateApi.getAll({
+        page: 0,
+        limit: 100,
+        status: 1,
+        productId: selectedProductId,
+      });
+    },
+  });
+
+  const products = useMemo(() => {
+    const items = product?.data?.items || [];
+    return items;
+  }, [product]);
 
   const interestRates = useMemo(() => {
     const items = interestRateData?.data?.items || [];
     return items;
   }, [interestRateData]);
 
-  // term in interest rate, get all terms unique
   const terms = useMemo(() => {
-    const terms = interestRates.filter((item) => item.term.value !== 0);
+    const interestRatesFilter = interestRates.filter(
+      (item) => item.term.value !== 0,
+    );
+    const terms = interestRatesFilter.map((item) => item.term);
     return [...new Set(terms)];
   }, [interestRates]);
+  const [selectedType, setSelectedType] = useState(item?.type || 0);
 
   const [isLoading, setIsLoading] = useState(false);
   const formik = useFormik({
@@ -106,6 +144,9 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
       principal: item?.principal || 0,
       paymentMethodId: item?.paymentMethodId || 0,
       interestRateId: item?.interestRateId || interestRates[0]?.id || 0,
+      rolloverId: item?.rolloverId || 0,
+      transferAccountId: item?.transferAccountId || 0,
+      termId: item?.termId || terms[0]?.id || 0,
     },
     validationSchema: Yup.object({
       email: Yup.string()
@@ -115,7 +156,7 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
 
       firstName: Yup.string().max(255).required('First name is required'),
       lastName: Yup.string().max(255).required('Last name is required'),
-      pin: Yup.string().min(12).max(12).required('Pin is required'),
+      pin: Yup.string().matches(/^[0-9]{12}$/, 'Pin is not valid'),
       dob: Yup.string()
         .required('Date of birth is required')
         .test('age', 'Age must be greater than 18', (value) => {
@@ -124,6 +165,12 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
         }),
       phone: Yup.string().matches(phoneRegExp, 'Phone number is not valid'),
       address: Yup.string().max(255).required('Address is required'),
+      principal:
+        selectedType === 0
+          ? Yup.number().required('Principal is required').min(0)
+          : Yup.number()
+              .min(500000, 'Minimum principal is 500,000 VND')
+              .required('Principal is required'),
     }),
     onSubmit: async (values, helpers) => {
       setIsLoading(true);
@@ -159,6 +206,14 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
             changedValues.paymentMethodId,
           );
         changedValues.type = selectedType;
+        if (selectedType !== 0) {
+          const interestRate = interestRates.find(
+            (item) => item.id === changedValues.interestRateId,
+          );
+          changedValues.interestRate = interestRate.value;
+          changedValues.termId = selectedTermId;
+        }
+
         await onSubmit(changedValues);
       } catch (err) {
         helpers.setStatus({ success: false });
@@ -177,8 +232,6 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
     );
     return items;
   }, [paymentMethodData]);
-
-  const [selectedType, setSelectedType] = useState(item?.type || 0);
 
   const [selectedTermId, setSelectedTermId] = useState(item?.termId || -1);
 
@@ -225,6 +278,19 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
     },
   });
 
+  const { mutate: getAccounts, data } = useMutation({
+    mutationFn: accountApi.getAll,
+    onSuccess: (data) => {
+      formik.setFieldValue(
+        'transferAccountId',
+        item?.transferAccountId || data?.data?.items[0]?.id || 0,
+      );
+    },
+  });
+  const accounts = useMemo(() => {
+    return data?.data?.items || [];
+  }, [data]);
+
   return (
     <form autoComplete="off" onSubmit={formik.handleSubmit}>
       <Card style={style}>
@@ -247,92 +313,6 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
               display: 'flex',
             }}
           >
-            <Typography color="indigo" variant="subtitle1">
-              Account Information
-            </Typography>
-            <TextField
-              size="small"
-              value={formik.values.type}
-              label="Account Type"
-              name="type"
-              select
-              SelectProps={{ native: true }}
-              onChange={(e) => {
-                setSelectedType(
-                  parseInt(e.target.value) === 0 ? 0 : parseInt(e.target.value),
-                );
-                formik.handleChange(e);
-              }}
-            >
-              {accountTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </TextField>
-
-            {parseInt(selectedType) === 1 && (
-              <>
-                <TextField
-                  size="small"
-                  label="Term"
-                  value={selectedTermId}
-                  onChange={(e) => {
-                    setSelectedTermId(e.target.value);
-                  }}
-                  select
-                  SelectProps={{ native: true }}
-                >
-                  {terms.map((term) => (
-                    <option key={term.id} value={term.id}>
-                      {term.value + ' ' + 'tháng'}
-                    </option>
-                  ))}
-                </TextField>
-                <TextField
-                  size="small"
-                  value={formik.values.paymentMethodId}
-                  label="Interest Payment Method"
-                  name="paymentMethodId"
-                  select
-                  SelectProps={{ native: true }}
-                  onChange={formik.handleChange}
-                >
-                  {paymentMethods.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </TextField>
-                <TextField
-                  disabled
-                  size="small"
-                  fullWidth
-                  label="Interest Rate (%)"
-                  name="value"
-                  type="number"
-                  value={selectedInterestRate?.value || 0}
-                />
-
-                <TextField
-                  disabled
-                  size="small"
-                  label="Maturity Date"
-                  type="date"
-                  value={maturityDate}
-                />
-              </>
-            )}
-            <TextField
-              error={!!(formik.touched.principal && formik.errors.principal)}
-              helperText={formik.touched.principal && formik.errors.principal}
-              size="small"
-              label="Principal"
-              name="principal"
-              type="number"
-              onChange={formik.handleChange}
-              value={formik.values.principal}
-            />
             <Typography color="indigo" variant="subtitle1">
               Customer Information
             </Typography>
@@ -448,6 +428,150 @@ export const BankAccountForm = ({ item, onSubmit, type = 'ADD' }) => {
                 />
               </RadioGroup>
             </div>
+            <Typography color="indigo" variant="subtitle1">
+              Account Information
+            </Typography>
+            <TextField
+              size="small"
+              value={formik.values.type}
+              label="Account Type"
+              name="type"
+              select
+              SelectProps={{ native: true }}
+              onChange={(e) => {
+                setSelectedType(
+                  parseInt(e.target.value) === 0 ? 0 : parseInt(e.target.value),
+                );
+                formik.handleChange(e);
+              }}
+            >
+              {accountTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </TextField>
+
+            {parseInt(selectedType) === 1 && (
+              <>
+                <TextField
+                  size="small"
+                  label="Product"
+                  value={selectedProductId}
+                  onChange={(e) => {
+                    setSelectedProductId(e.target.value);
+                  }}
+                  select
+                  SelectProps={{ native: true }}
+                >
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </TextField>
+                <TextField
+                  size="small"
+                  label="Term"
+                  name="termId"
+                  value={selectedTermId}
+                  onChange={(e) => {
+                    setSelectedTermId(e.target.value);
+                  }}
+                  select
+                  SelectProps={{ native: true }}
+                >
+                  {terms.map((term) => (
+                    <option key={term.id} value={term.id}>
+                      {term.value + ' ' + 'tháng'}
+                    </option>
+                  ))}
+                </TextField>
+
+                <TextField
+                  disabled
+                  size="small"
+                  fullWidth
+                  label="Interest Rate (%)"
+                  name="value"
+                  type="number"
+                  value={selectedInterestRate?.value || 0}
+                />
+
+                <TextField
+                  disabled
+                  size="small"
+                  label="Maturity Date"
+                  type="date"
+                  value={maturityDate}
+                />
+                <TextField
+                  size="small"
+                  value={formik.values.paymentMethodId}
+                  label="Interest Payment Method"
+                  name="paymentMethodId"
+                  select
+                  SelectProps={{ native: true }}
+                  onChange={formik.handleChange}
+                >
+                  {paymentMethods.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </TextField>
+                <TextField
+                  size="small"
+                  label="Rollover Method"
+                  name="rolloverId"
+                  value={formik.values.rolloverId}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    if (e.target.value === '3') {
+                      getAccounts({
+                        page: 0,
+                        limit: 100,
+                        type: 0,
+                        customerId: formik.values.customerId,
+                      });
+                    }
+                  }}
+                  select
+                  SelectProps={{ native: true }}
+                >
+                  {rolloverMethods.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </TextField>
+                {formik.values.rolloverId === '3' && (
+                  <TextField
+                    size="small"
+                    label="Transfer To Account"
+                    name="transferToAccountId"
+                    select
+                    SelectProps={{ native: true }}
+                  >
+                    {accounts.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.number}
+                      </option>
+                    ))}
+                  </TextField>
+                )}
+              </>
+            )}
+            <TextField
+              error={!!(formik.touched.principal && formik.errors.principal)}
+              helperText={formik.touched.principal && formik.errors.principal}
+              size="small"
+              label="Principal"
+              name="principal"
+              type="number"
+              onChange={formik.handleChange}
+              value={formik.values.principal}
+            />
           </Box>
         </CardContent>
         <Divider />

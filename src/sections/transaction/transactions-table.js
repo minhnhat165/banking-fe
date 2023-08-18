@@ -54,6 +54,10 @@ const typeMap = {
     color: 'error',
     text: 'SETTLEMENT',
   },
+  6: {
+    color: 'secondary',
+    text: 'RENEWAL',
+  },
 };
 
 export const TransactionsTable = (props) => {
@@ -75,12 +79,11 @@ export const TransactionsTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Account Number</TableCell>
                 <TableCell align="center">Type</TableCell>
                 <TableCell>Amount</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Transaction Date</TableCell>
-                <TableCell>Balance</TableCell>
+
                 <TableCell align="center">Status</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
@@ -90,11 +93,6 @@ export const TransactionsTable = (props) => {
                 const isSelected = selected.includes(item.id);
                 return (
                   <TableRow hover key={item.id} selected={isSelected}>
-                    <TableCell>
-                      <Typography variant="subtitle2">
-                        {item.account.number}
-                      </Typography>
-                    </TableCell>
                     <TableCell align="center">
                       <SeverityPill color={typeMap[item.type].color}>
                         {typeMap[item.type].text}
@@ -108,12 +106,6 @@ export const TransactionsTable = (props) => {
                     </TableCell>
                     <TableCell>{item.description}</TableCell>
                     <TableCell>{item.transactionDate}</TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      }).format(item.balance)}
-                    </TableCell>
                     <TableCell align="center">
                       <SeverityPill color={statusMap[item.status].color}>
                         {statusMap[item.status].text}

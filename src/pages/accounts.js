@@ -11,6 +11,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AccountDetails } from 'src/sections/bank-account/account-details';
+import { AccountsSearch } from 'src/sections/bank-account/account-search';
 import { AccountsTable } from 'src/sections/bank-account/accounts-table';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/solid';
@@ -18,6 +19,7 @@ import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { BankAccountForm } from 'src/sections/bank-account/bank-account-form';
 import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
+import { DepositForm } from 'src/sections/bank-account/deposit-form';
 import Head from 'next/head';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { SCREENS } from 'src/layouts/dashboard/config';
@@ -25,7 +27,6 @@ import { accountApi } from 'src/services/account-api';
 import { toast } from 'react-hot-toast';
 import { usePermission } from 'src/hooks/use-permission';
 import { useSearchParams } from 'next/navigation';
-import { AccountsSearch } from 'src/sections/bank-account/account-search';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -66,6 +67,14 @@ const Page = () => {
   };
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const [openDeposit, setOpenDeposit] = useState(false);
+  const handleOpenDeposit = () => {
+    setOpenDeposit(true);
+  };
+  const handleCloseDeposit = () => {
+    setOpenDeposit(false);
   };
 
   const [openEdit, setOpenEdit] = useState(false);
@@ -219,6 +228,10 @@ const Page = () => {
                 setSelected(item);
                 handleOpenDetails();
               }}
+              onDeposit={(item) => {
+                setSelected(item);
+                handleOpenDeposit();
+              }}
             />
           </Stack>
         </Container>
@@ -240,6 +253,17 @@ const Page = () => {
             item={selected}
             onClose={handleCloseDetails}
             allowEdit={isAll || isUpdate}
+          />
+        </Box>
+      </Modal>
+      <Modal open={openDeposit} onClose={handleCloseDeposit}>
+        <Box>
+          <DepositForm
+            item={selected}
+            onSubmit={() => {
+              queryClient.invalidateQueries(key);
+              handleCloseDeposit();
+            }}
           />
         </Box>
       </Modal>
